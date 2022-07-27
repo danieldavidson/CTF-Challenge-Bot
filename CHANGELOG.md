@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [2.0.0] - 2022-07-26
 ### Changed
-* Use [Bot for Python](https://github.com/slackapi/bolt-python).
+* Use [Bolt for Python](https://github.com/slackapi/bolt-python).
 * Bot receive app payloads via Websockets.
 * Users interact with the bot using slash commands.
 
