@@ -4,7 +4,6 @@ import os
 
 
 class SyscallTable:
-
     def __init__(self, filename):
         self.source = filename
         self.entries = collections.OrderedDict()
@@ -33,8 +32,7 @@ class SyscallTable:
 
         for line in lines[1:]:
             parts = line.split("\t")
-            self.entries[parts[1]] = self.get_entry_dict(
-                line.split("\t"), identifiers)
+            self.entries[parts[1]] = self.get_entry_dict(line.split("\t"), identifiers)
 
     def get_entry_by_id(self, idx):
         for entry in self.entries:
@@ -67,7 +65,6 @@ class SyscallTable:
 
 
 class SyscallInfo:
-
     def __init__(self, basedir):
         self.tables = {}
 

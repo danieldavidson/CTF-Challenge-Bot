@@ -1,3 +1,1 @@
-__all__ = [
-    "slackwrapper_mock"
-]
+__all__ = ["slackwrapper_mock"]

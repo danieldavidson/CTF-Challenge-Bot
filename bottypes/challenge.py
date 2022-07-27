@@ -1,5 +1,6 @@
 import time
 
+
 class Challenge:
     MAX_TAGS = 5
 

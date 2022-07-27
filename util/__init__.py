@@ -1,4 +1,1 @@
-__all__ = [
-    "loghandler",
-    "githandler"
-]
+__all__ = ["loghandler", "githandler"]

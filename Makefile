@@ -1,28 +1,28 @@
 PWD = $(shell pwd)
 
 build:
-	docker build . -t otabot
+	docker build . -t ctfbot
 
 image:
-	docker images | grep otabot || docker build . -t otabot
+	docker images | grep ctfbot || docker build . -t ctfbot
 
 lint: image
-	docker run --rm -v ${PWD}/:/src/ otabot pylint **/*.py -E
+	docker run --rm -v ${PWD}/:/src/ ctfbot pylint **/*.py -E
 
 checklint: image
-	docker run --rm -v ${PWD}/:/src/ otabot pylint **/*.py --exit-zero
+	docker run --rm -v ${PWD}/:/src/ ctfbot pylint **/*.py --exit-zero
 
 run: build
-	docker run --rm -it otabot
+	docker run --rm -it ctfbot
 
 runlocal: image
-	docker run --rm -it -v ${PWD}/:/src/ otabot
+	docker run --rm -it -v ${PWD}/:/src/ ctfbot
 
 test:
-	docker run --rm -v ${PWD}/:/src/ otabot python3 runtests.py
+	docker run --rm -v ${PWD}/:/src/ ctfbot python3 runtests.py
 
 background: image
-	docker run --rm -d --name otabot otabot
+	docker run --rm -d --name ctfbot ctfbot
 
 stop:
-	docker stop otabot
+	docker stop ctfbot

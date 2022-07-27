@@ -14,35 +14,44 @@ class PingCommand(Command):
     """Ping this server to check for uptime."""
 
     @classmethod
-    def execute(cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin):
+    def execute(
+        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+    ):
         """Announce the bot's presence in the channel."""
-        slack_wrapper.post_message(channel_id, "Pong!")
+        slack_wrapper.post_message(channel_id, "Pong!", user_id=user_id)
 
 
 class IntroCommand(Command):
     """Show an introduction message for new members."""
 
     @classmethod
-    def execute(cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin):
+    def execute(
+        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+    ):
         """Execute the Intro command."""
         with open("./config/config.json") as f:
             message = json.load(f).get("intro_message")
 
-        slack_wrapper.post_message(channel_id, message)
+        slack_wrapper.post_message(channel_id, message, user_id=user_id)
+
 
 class VersionCommand(Command):
     """Show git information about the current running version of the bot."""
 
     @classmethod
-    def execute(cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin):
+    def execute(
+        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+    ):
         """Execute the Version command."""
         try:
             message = GitHandler(".").get_version()
 
-            slack_wrapper.post_message(channel_id, message)
+            slack_wrapper.post_message(channel_id, message, user_id=user_id)
         except:
             log.exception("BotHandler::VersionCommand")
-            raise InvalidCommand("Sorry, couldn't retrieve the git information for the bot...")
+            raise InvalidCommand(
+                "Sorry, couldn't retrieve the git information for the bot..."
+            )
 
 
 class InviteCommand(Command):
@@ -52,7 +61,9 @@ class InviteCommand(Command):
     """
 
     @classmethod
-    def execute(cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin):
+    def execute(
+        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+    ):
         current_members = slack_wrapper.get_channel_members(channel_id)
         # strip uid formatting
         invited_users = [user.strip("<>@") for user in args]
@@ -65,23 +76,28 @@ class InviteCommand(Command):
 
         if failed_users:
             log.exception("BotHandler::InviteCommand")
-            raise InvalidCommand("Sorry, couldn't invite the following members to the channel: " + ' '.join(failed_users))
+            raise InvalidCommand(
+                "Sorry, couldn't invite the following members to the channel: "
+                + " ".join(failed_users)
+            )
 
 
 class SysInfoCommand(Command):
     """
-    Show information about system resources on the machine, otabot is running on.
+    Show information about system resources on the machine, ctfbot is running on.
     """
 
     @classmethod
-    def execute(cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin):
+    def execute(
+        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+    ):
         result = b"```\n"
-        result += b'\n'.join(subprocess.check_output(['top', '-bn1']).split(b"\n")[:20])
+        result += b"\n".join(subprocess.check_output(["top", "-bn1"]).split(b"\n")[:20])
         result += b"\n\n"
-        result += subprocess.check_output(['df', '-h'])
+        result += subprocess.check_output(["df", "-h"])
         result += b"```\n"
 
-        slack_wrapper.post_message(user_id, result)
+        slack_wrapper.post_message(user_id, result, user_id=user_id)
 
 
 class BotHandler(BaseHandler):
@@ -90,10 +106,24 @@ class BotHandler(BaseHandler):
     def __init__(self):
         self.commands = {
             "ping": CommandDesc(PingCommand, "Ping the bot", None, None),
-            "intro": CommandDesc(IntroCommand, "Show an introduction message for new members", None, None),
-            "version": CommandDesc(VersionCommand, "Show git information about the running version of the bot", None, None),
-            "invite": CommandDesc(InviteCommand, "Invite a list of members (using @username) to the current channel (smarter than /invite)", ["user_list"], None),
-            "sysinfo": CommandDesc(SysInfoCommand, "Show system information", None, None, True)
+            "intro": CommandDesc(
+                IntroCommand, "Show an introduction message for new members", None, None
+            ),
+            "version": CommandDesc(
+                VersionCommand,
+                "Show git information about the running version of the bot",
+                None,
+                None,
+            ),
+            "invite": CommandDesc(
+                InviteCommand,
+                "Invite a list of members (using @username) to the current channel (smarter than /invite)",
+                ["user_list"],
+                None,
+            ),
+            "sysinfo": CommandDesc(
+                SysInfoCommand, "Show system information", None, None, True
+            ),
         }
 
 

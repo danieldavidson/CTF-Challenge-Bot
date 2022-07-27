@@ -9,7 +9,9 @@ class ShowAvailableArchCommand(Command):
     """Shows the available architecture tables for syscalls."""
 
     @classmethod
-    def execute(cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin):
+    def execute(
+        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+    ):
         """Execute the ShowAvailableArch command."""
         arch_list = SyscallsHandler.syscallInfo.get_available_architectures()
 
@@ -38,7 +40,9 @@ class ShowSyscallCommand(Command):
         return msg.strip() + "```"
 
     @classmethod
-    def execute(cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin):
+    def execute(
+        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+    ):
         """Execute the ShowSyscall command."""
         arch = SyscallsHandler.syscallInfo.get_arch(args[0].lower())
 
@@ -57,9 +61,15 @@ class ShowSyscallCommand(Command):
                 slack_wrapper.post_message(channel_id, cls.parse_syscall_info(entry))
             else:
                 slack_wrapper.post_message(
-                    channel_id, "Specified syscall not found: `{} (Arch: {})`".format(args[1], args[0]))
+                    channel_id,
+                    "Specified syscall not found: `{} (Arch: {})`".format(
+                        args[1], args[0]
+                    ),
+                )
         else:
-            slack_wrapper.post_message(channel_id, "Specified architecture not available: `{}`".format(args[0]))
+            slack_wrapper.post_message(
+                channel_id, "Specified architecture not available: `{}`".format(args[0])
+            )
 
 
 class SyscallsHandler(BaseHandler):
@@ -84,8 +94,18 @@ class SyscallsHandler(BaseHandler):
         SyscallsHandler.syscallInfo = SyscallInfo(SyscallsHandler.BASEDIR)
 
         self.commands = {
-            "available": CommandDesc(ShowAvailableArchCommand, "Shows the available syscall architectures", None, None),
-            "show": CommandDesc(ShowSyscallCommand, "Show information for a specific syscall", ["arch", "syscall name/syscall id"], None),
+            "available": CommandDesc(
+                ShowAvailableArchCommand,
+                "Shows the available syscall architectures",
+                None,
+                None,
+            ),
+            "show": CommandDesc(
+                ShowSyscallCommand,
+                "Show information for a specific syscall",
+                ["arch", "syscall name/syscall id"],
+                None,
+            ),
         }
 
 

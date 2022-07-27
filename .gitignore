@@ -7,3 +7,4 @@ config/config_solvetracker.json
 .venv
 intro_msg
 .vscode
+.idea

@@ -17,7 +17,9 @@ botserver = None
 
 
 def register(handler_name, handler):
-    log.info("Registering new handler: %s (%s)", handler_name, handler.__class__.__name__)
+    log.info(
+        "Registering new handler: %s (%s)", handler_name, handler.__class__.__name__
+    )
 
     handlers[handler_name] = handler
     handler.handler_name = handler_name
@@ -35,43 +37,39 @@ def initialize(slack_wrapper, _botserver):
         handlers[handler].init(slack_wrapper)
 
 
-def process(slack_wrapper, botserver, message, timestamp, channel_id, user_id):
-    log.debug("Processing message: %s from %s (%s)", message, channel_id, user_id)
+def process(slack_wrapper, command, message, timestamp, channel_id, user_id):
+    log.debug(
+        "Processing message: %s %s from %s (%s)", command, message, user_id, channel_id
+    )
 
     try:  # Parse command and check for malformed input
-        command_line = unidecode(message)
+        command_line = unidecode(" ".join([command, message]))
 
         lexer = shlex.shlex(command_line, posix=True)
         lexer.quotes = '"'
         lexer.whitespace_split = True
 
         args = list(lexer)
-    except:
+    except Exception:
         message = "Command failed : Malformed input."
         slack_wrapper.post_message(channel_id, message, timestamp)
         return
 
-    process_command(slack_wrapper, message, args, timestamp, channel_id, user_id)
+    process_command(
+        slack_wrapper, command, message, args, timestamp, channel_id, user_id
+    )
 
 
-def process_reaction(slack_wrapper, reaction, timestamp, channel_id, user_id):
-    try:
-        log.debug("Processing reaction: %s from %s (%s)", reaction, channel_id, timestamp)
-
-        admin_users = botserver.get_config_option("admin_users")
-        user_is_admin = admin_users and user_id in admin_users
-
-        for handler_name, handler in handlers.items():
-            if handler.can_handle_reaction(reaction):
-                handler.process_reaction(slack_wrapper, reaction, channel_id, timestamp, user_id, user_is_admin)
-    except InvalidCommand as e:
-        slack_wrapper.post_message(channel_id, e, timestamp)
-
-    except Exception:
-        log.exception("An error has occured while processing a command")
-
-
-def process_command(slack_wrapper, message, args, timestamp, channel_id, user_id, admin_override=False):
+def process_command(
+    slack_wrapper,
+    command,
+    message,
+    args,
+    timestamp,
+    channel_id,
+    user_id,
+    admin_override=False,
+):
 
     try:
         handler_name = args[0].lower()
@@ -83,6 +81,7 @@ def process_command(slack_wrapper, message, args, timestamp, channel_id, user_id
 
         if admin_override:
             user_is_admin = True
+        log.debug(f"Command from admin user: {'True' if user_is_admin else 'False'}")
 
         # Call a specific handler with this command
         handler = handlers.get(handler_name)
@@ -96,7 +95,15 @@ def process_command(slack_wrapper, message, args, timestamp, channel_id, user_id
             else:  # Send command to specified handler
                 command = args[1].lower()
                 if handler.can_handle(command, user_is_admin):
-                    handler.process(slack_wrapper, command, args[2:], timestamp, channel_id, user_id, user_is_admin)
+                    handler.process(
+                        slack_wrapper,
+                        command,
+                        args[2:],
+                        timestamp,
+                        channel_id,
+                        user_id,
+                        user_is_admin,
+                    )
                     processed = True
 
         else:  # Pass the command to every available handler
@@ -107,9 +114,10 @@ def process_command(slack_wrapper, message, args, timestamp, channel_id, user_id
                     usage_msg += "{}\n".format(handler.get_usage(user_is_admin))
                     processed = True
 
-                elif handler.can_handle(command, user_is_admin):  # Send command to handler
-                    handler.process(slack_wrapper, command,
-                                    args[1:], timestamp, channel_id, user_id, user_is_admin)
+                elif handler.can_handle(
+                    command, user_is_admin
+                ):  # Send command to handler
+                    handler.process(slack_wrapper, command, args[1:], timestamp, channel_id, user_id, user_is_admin)
                     processed = True
 
         if not processed:  # Send error message
@@ -122,7 +130,7 @@ def process_command(slack_wrapper, message, args, timestamp, channel_id, user_id
             slack_wrapper.post_message(target_id, usage_msg)
 
     except InvalidCommand as e:
-        slack_wrapper.post_message(channel_id, e, timestamp)
+        slack_wrapper.post_message(channel_id, str(e), timestamp)
 
     except Exception:
         log.exception("An error has occured while processing a command")

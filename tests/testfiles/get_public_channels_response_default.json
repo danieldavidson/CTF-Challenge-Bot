@@ -23,7 +23,7 @@
         "last_set": 0
       },
       "purpose": {
-        "value": "{\"ota_bot\": \"OTABOT\", \"name\": \"ctf1\", \"type\": \"CTF\", \"cred_user\": \"\", \"cred_pw\": \"\", \"long_name\": \"createfix\"}",
+        "value": "{\"ctf_bot\": \"CTFBOT\", \"name\": \"ctf1\", \"type\": \"CTF\", \"cred_user\": \"\", \"cred_pw\": \"\", \"long_name\": \"createfix\"}",
         "creator": "UNITTEST_USER_ID1",
         "last_set": 1532537813
       },
@@ -52,7 +52,7 @@
         "last_set": 0
       },
       "purpose": {
-        "value": "{\"ota_bot\": \"OTABOT\", \"name\": \"createfix\", \"type\": \"CTF\", \"cred_user\": \"\", \"cred_pw\": \"\", \"long_name\": \"createfix\"}",
+        "value": "{\"ctf_bot\": \"CTFBOT\", \"name\": \"createfix\", \"type\": \"CTF\", \"cred_user\": \"\", \"cred_pw\": \"\", \"long_name\": \"createfix\"}",
         "creator": "UNITTEST_USER_ID1",
         "last_set": 1532537813
       },
@@ -81,7 +81,7 @@
         "last_set": 0
       },
       "purpose": {
-        "value": "{\"finished\":true,\"ota_bot\": \"OTABOT\", \"name\": \"finished_ctf\", \"type\": \"CTF\", \"cred_user\": \"\", \"cred_pw\": \"\", \"long_name\": \"finished_ctf\"}",
+        "value": "{\"finished\":true,\"ctf_bot\": \"CTFBOT\", \"name\": \"finished_ctf\", \"type\": \"CTF\", \"cred_user\": \"\", \"cred_pw\": \"\", \"long_name\": \"finished_ctf\"}",
         "creator": "UNITTEST_USER_ID1",
         "last_set": 1532537813
       },

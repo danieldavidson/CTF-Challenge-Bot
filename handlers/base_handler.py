@@ -6,7 +6,7 @@ from handlers import handler_factory
 
 class BaseHandler(ABC):
     commands = {}  # Overridden by concrete class
-    aliases = {}   # Overridden by concrete class
+    aliases = {}  # Overridden by concrete class
     reactions = {}
     handler_name = ""  # Overridden by concrete class
 
@@ -46,7 +46,7 @@ class BaseHandler(ABC):
 
     def parse_command_usage(self, command, descriptor):
         """Returns a usage string from a given command and descriptor."""
-        msg = "`!{} {}".format(self.handler_name, command)
+        msg = "`/{} {}".format(self.handler_name, command)
 
         for arg in descriptor.arguments:
             msg += " <{}>".format(arg)
@@ -86,31 +86,58 @@ class BaseHandler(ABC):
 
         return msg
 
-    def process(self, slack_wrapper, command, args, timestamp, channel, user, user_is_admin):
+    def process(
+        self, slack_wrapper, command, args, timestamp, channel, user, user_is_admin
+    ):
         if handler_factory.botserver.get_config_option("maintenance_mode"):
             if user_is_admin:
-                slack_wrapper.post_message(channel, "Warning! Maintenance mode is enabled!", timestamp)
+                slack_wrapper.post_message(
+                    channel, "Warning! Maintenance mode is enabled!", timestamp
+                )
             else:
-                slack_wrapper.post_message(channel, "Down for maintenance, back soon.", timestamp)
+                slack_wrapper.post_message(
+                    channel, "Down for maintenance, back soon.", timestamp
+                )
                 return
 
         """Check if enough arguments were passed for this command."""
         if command in self.aliases:
-            self.process(slack_wrapper, self.aliases[command], args, timestamp, channel, user, user_is_admin)
+            self.process(
+                slack_wrapper,
+                self.aliases[command],
+                args,
+                timestamp,
+                channel,
+                user,
+                user_is_admin,
+            )
         elif command in self.commands:
             cmd_descriptor = self.commands[command]
 
             if cmd_descriptor:
                 if len(args) < len(cmd_descriptor.arguments):
                     raise InvalidCommand(self.command_usage(command, cmd_descriptor))
-                cmd_descriptor.command.execute(slack_wrapper, args, timestamp, channel, user, user_is_admin)
+                cmd_descriptor.command.execute(
+                    slack_wrapper, args, timestamp, channel, user, user_is_admin
+                )
 
-    def process_reaction(self, slack_wrapper, reaction, channel, timestamp, user, user_is_admin):
-        if handler_factory.botserver.get_config_option("maintenance_mode") and not user_is_admin:
+    def process_reaction(
+        self, slack_wrapper, reaction, channel, timestamp, user, user_is_admin
+    ):
+        if (
+            handler_factory.botserver.get_config_option("maintenance_mode")
+            and not user_is_admin
+        ):
             raise InvalidCommand("Down for maintenance, back soon.")
 
         reaction_descriptor = self.reactions[reaction]
 
         if reaction_descriptor:
             reaction_descriptor.command.execute(
-                slack_wrapper, {"reaction": reaction, "timestamp": timestamp}, timestamp, channel, user, user_is_admin)
+                slack_wrapper,
+                {"reaction": reaction, "timestamp": timestamp},
+                timestamp,
+                channel,
+                user,
+                user_is_admin,
+            )

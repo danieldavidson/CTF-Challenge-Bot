@@ -23,8 +23,8 @@ def load_json(string):
 
 def transliterate(string):
     """
-        Converts ascii characters to a unicode
-        equivalent.
+    Converts ascii characters to a unicode
+    equivalent.
     """
     mapping = {
         "a": "ɑ",  # \xc9\x91
@@ -39,7 +39,7 @@ def transliterate(string):
         "U": "υ",  # \xcf\x85
     }
 
-    return ''.join([mapping[c] if c in mapping else c for c in string])
+    return "".join([mapping[c] if c in mapping else c for c in string])
 
 
 #######
@@ -110,7 +110,9 @@ def get_challenge_by_name(database, challenge_name, ctf_channel_id):
     ctfs = pickle.load(open(database, "rb"))
 
     if ctf_channel_id not in ctfs:
-        raise InvalidCommand("Could not find corresponding ctf channel. Try reloading ctf data.")
+        raise InvalidCommand(
+            "Could not find corresponding ctf channel. Try reloading ctf data."
+        )
 
     for challenge in ctfs[ctf_channel_id].challenges:
         if challenge.name == challenge_name:
@@ -159,7 +161,9 @@ def get_challenge_from_args(database, args, channel_id):
     if current_chal:
         # User is in a challenge channel => Check for challenge by name
         # in parent ctf channel
-        challenge = get_challenge_by_name(database, challenge_name, current_chal.ctf_channel_id)
+        challenge = get_challenge_by_name(
+            database, challenge_name, current_chal.ctf_channel_id
+        )
     else:
         # User is in the ctf channel => Check for challenge by name in
         # current challenge
@@ -258,7 +262,12 @@ def remove_challenge_by_channel_id(database, challenge_channel_id, ctf_channel_i
     """
     ctfs = pickle.load(open(database, "rb"))
     ctf = ctfs[ctf_channel_id]
-    ctf.challenges = list(filter(lambda challenge: challenge.channel_id != challenge_channel_id, ctf.challenges))
+    ctf.challenges = list(
+        filter(
+            lambda challenge: challenge.channel_id != challenge_channel_id,
+            ctf.challenges,
+        )
+    )
     pickle.dump(ctfs, open(database, "wb"))
 
 
@@ -273,7 +282,9 @@ def remove_ctf_by_channel_id(database, ctf_channel_id):
 
 def cleanup_reminders(slack_wrapper, handler_factory, ctf):
     """Remove existing reminders for this ctf, if reminder handling is configured."""
-    reminder_offset = handler_factory.botserver.get_config_option("archive_ctf_reminder_offset")
+    reminder_offset = handler_factory.botserver.get_config_option(
+        "archive_ctf_reminder_offset"
+    )
 
     if not reminder_offset:
         # no reminder handling configured, bail out
@@ -305,22 +316,22 @@ def get_display_name(member):
 
 
 def get_display_name_from_user(user):
-    if 'profile' in user:
-        if user['profile']['display_name']:
-            return user['profile']['display_name']
+    if "profile" in user:
+        if user["profile"]["display_name"]:
+            return user["profile"]["display_name"]
 
-        if user['profile']['real_name']:
-            return user['profile']['real_name']
+        if user["profile"]["real_name"]:
+            return user["profile"]["real_name"]
 
-    if 'real_name' in user:
-        if user['real_name']:
-            return user['real_name']
+    if "real_name" in user:
+        if user["real_name"]:
+            return user["real_name"]
 
-    if 'name' in user:
-        if user['name']:
-            return user['name']
+    if "name" in user:
+        if user["name"]:
+            return user["name"]
 
-    return user['id']
+    return user["id"]
 
 
 def is_valid_name(name):
