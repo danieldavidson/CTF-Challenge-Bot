@@ -4,6 +4,10 @@ services:
     build: .
     volumes:
       - .:/src
+    environment:
+      - SLACK_BOT_TOKEN
+      - SLACK_SIGNING_SECRET
+      - SLACK_APP_TOKEN
   redis:
     image: "redis:latest"
     command: redis-server /usr/local/etc/redis/redis.conf
