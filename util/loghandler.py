@@ -24,7 +24,8 @@ elog.setLevel(logging.ERROR)
 clog = logging.StreamHandler()
 clog.setLevel(CONSOLELOGLEVEL)
 
-formatter = logging.Formatter("%(asctime)s - %(module)-20s - %(message)s")
+# formatter = logging.Formatter("%(asctime)s - %(module)-20s - %(message)s")
+formatter = logging.Formatter("%(levelname)s -- %(asctime)-15s -- %(filename)s:%(funcName)s:%(lineno)d -- %(message)s")
 
 clog.setFormatter(formatter)
 elog.setFormatter(formatter)

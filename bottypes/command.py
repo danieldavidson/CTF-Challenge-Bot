@@ -1,11 +1,10 @@
 from abc import ABC
 
+from pydantic import BaseModel
 
-class Command(ABC):
+
+class Command(BaseModel, ABC):
     """Defines the command interface."""
-
-    def __init__(self):
-        pass
 
     @classmethod
     def execute(

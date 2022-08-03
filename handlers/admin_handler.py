@@ -1,4 +1,3 @@
-import json
 from bottypes.command import Command
 from bottypes.command_descriptor import CommandDesc
 from bottypes.invalid_command import InvalidCommand
@@ -7,7 +6,7 @@ from handlers.base_handler import BaseHandler
 from util.util import get_display_name_from_user, parse_user_id, resolve_user_by_user_id
 
 
-class MakeCTFCommand:
+class MakeCTFCommand(Command):
     """
     Update the channel purpose to be that of a CTF.
     """
@@ -17,19 +16,20 @@ class MakeCTFCommand:
         cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
     ):
         if user_is_admin:
-            purpose = {}
-            purpose["ctf_bot"] = "CTFBOT"
-            purpose["name"] = args[0]
-            purpose["type"] = "CTF"
-            purpose["cred_user"] = ""
-            purpose["cred_pw"] = ""
-            purpose["long_name"] = args[0]
-            purpose["finished"] = False
-            purpose["finished_on"] = ""
+            purpose = {
+                "ctf_bot": "CTFBOT",
+                "name": args[0],
+                "type": "CTF",
+                "cred_user": "",
+                "cred_pw": "",
+                "long_name": args[0],
+                "finished": False,
+                "finished_on": "",
+            }
             slack_wrapper.set_purpose(channel_id, purpose)
 
 
-class StartDebuggerCommand:
+class StartDebuggerCommand(Command):
     """
     Break into pdb. Better have a tty open!
     Must be in maintenance mode to use.
@@ -48,7 +48,7 @@ class StartDebuggerCommand:
                 InvalidCommand("Must be in maintenance mode to open a shell")
 
 
-class JoinChannelCommand:
+class JoinChannelCommand(Command):
     """
     Join the named channel.
     """
@@ -215,52 +215,49 @@ class AdminHandler(BaseHandler):
     def __init__(self):
         self.commands = {
             "show_admins": CommandDesc(
-                ShowAdminsCommand,
-                "Show a list of current admin users",
-                None,
-                None,
-                True,
+                command=ShowAdminsCommand,
+                description="Show a list of current admin users",
+                is_admin_cmd=True,
             ),
             "add_admin": CommandDesc(
-                AddAdminCommand,
-                "Add a user to the admin user group",
-                ["user_id"],
-                None,
-                True,
+                command=AddAdminCommand,
+                description="Add a user to the admin user group",
+                arguments=["user_id"],
+                is_admin_cmd=True,
             ),
             "remove_admin": CommandDesc(
-                RemoveAdminCommand,
-                "Remove a user from the admin user group",
-                ["user_id"],
-                None,
-                True,
+                command=RemoveAdminCommand,
+                description="Remove a user from the admin user group",
+                arguments=["user_id"],
+                is_admin_cmd=True,
             ),
             "as": CommandDesc(
-                AsCommand,
-                "Execute a command as another user",
-                ["@user", "command"],
-                None,
-                True,
+                command=AsCommand,
+                description="Execute a command as another user",
+                arguments=["@user", "command"],
+                is_admin_cmd=True,
             ),
             "maintenance": CommandDesc(
-                ToggleMaintenanceModeCommand,
-                "Toggle maintenance mode",
-                None,
-                None,
-                True,
+                command=ToggleMaintenanceModeCommand,
+                description="Toggle maintenance mode",
+                is_admin_cmd=True,
             ),
             "debug": CommandDesc(
-                StartDebuggerCommand, "Break into a debugger shell", None, None, True
+                command=StartDebuggerCommand,
+                description="Break into a debugger shell",
+                is_admin_cmd=True,
             ),
             "join": CommandDesc(
-                JoinChannelCommand, "Join a channel", ["channel_name"], None, True
+                command=JoinChannelCommand,
+                description="Join a channel",
+                arguments=["channel_name"],
+                is_admin_cmd=True,
             ),
             "makectf": CommandDesc(
-                MakeCTFCommand,
-                "Turn the current channel into a CTF channel by setting the purpose. Requires reload to take effect",
-                ["ctf_name"],
-                None,
-                True,
+                command=MakeCTFCommand,
+                description="Turn the current channel into a CTF channel by setting the purpose. Requires reload to take effect",
+                arguments=["ctf_name"],
+                is_admin_cmd=True,
             ),
         }
 

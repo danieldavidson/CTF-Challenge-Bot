@@ -95,16 +95,13 @@ class SyscallsHandler(BaseHandler):
 
         self.commands = {
             "available": CommandDesc(
-                ShowAvailableArchCommand,
-                "Shows the available syscall architectures",
-                None,
-                None,
+                command=ShowAvailableArchCommand,
+                description="Shows the available syscall architectures",
             ),
             "show": CommandDesc(
-                ShowSyscallCommand,
-                "Show information for a specific syscall",
-                ["arch", "syscall name/syscall id"],
-                None,
+                command=ShowSyscallCommand,
+                description="Show information for a specific syscall",
+                arguments=["arch", "syscall name/syscall id"],
             ),
         }
 

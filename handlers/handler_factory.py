@@ -87,14 +87,17 @@ def process_command(
         handler = handlers.get(handler_name)
 
         if handler:
+            log.debug(f"Found handler {handler} for {args}")
             # Setup usage message
             if len(args) < 2 or args[1] == "help":
+                log.debug(f"Sending usage info")
                 usage_msg += handler.get_usage(user_is_admin)
                 processed = True
 
             else:  # Send command to specified handler
                 command = args[1].lower()
                 if handler.can_handle(command, user_is_admin):
+                    log.debug(f"Handler {handler} can handle {args}")
                     handler.process(
                         slack_wrapper,
                         command,
@@ -105,6 +108,9 @@ def process_command(
                         user_is_admin,
                     )
                     processed = True
+                else:
+                    log.debug(f"Handler {handler} can not handle {args}")
+
 
         else:  # Pass the command to every available handler
             command = args[0].lower()
@@ -117,7 +123,15 @@ def process_command(
                 elif handler.can_handle(
                     command, user_is_admin
                 ):  # Send command to handler
-                    handler.process(slack_wrapper, command, args[1:], timestamp, channel_id, user_id, user_is_admin)
+                    handler.process(
+                        slack_wrapper,
+                        command,
+                        args[1:],
+                        timestamp,
+                        channel_id,
+                        user_id,
+                        user_is_admin,
+                    )
                     processed = True
 
         if not processed:  # Send error message

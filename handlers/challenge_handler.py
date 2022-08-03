@@ -1,5 +1,7 @@
 import time
 from random import randint
+from typing import Type
+
 from dateutil.relativedelta import relativedelta
 from slack_sdk.errors import SlackApiError
 
@@ -15,7 +17,7 @@ from util.loghandler import log
 from util.util import *
 
 
-class SignupCommand:
+class SignupCommand(Command):
     """
     Invite the user into the specified CTF channel along with any existing challenge channels.
     """
@@ -46,7 +48,7 @@ class SignupCommand:
                 response = slack_wrapper.invite_user(invites, chall.channel_id)
 
 
-class PopulateCommand:
+class PopulateCommand(Command):
     """
     Invite a list of members to the CTF channel and add them to any existing
     challenge channels.
@@ -213,7 +215,7 @@ class AddCTFCommand(Command):
         ctf_channel_id = response["channel"]["id"]
 
         # New CTF object
-        ctf = CTF(ctf_channel_id, name, long_name)
+        ctf = CTF(channel_id=ctf_channel_id, name=name, long_name=long_name)
 
         # Update list of CTFs
         ctfs = pickle.load(open(ChallengeHandler.DB, "rb"))
@@ -442,7 +444,7 @@ class AddChallengeCommand(Command):
         purpose = json.dumps(purpose)
         slack_wrapper.set_purpose(challenge_channel_id, purpose, is_private=True)
 
-        if handler_factory.botserver.get_config_option("auto_invite") == True:
+        if handler_factory.botserver.get_config_option("auto_invite") is True:
             # Invite everyone in the ctf channel
             members = slack_wrapper.get_channel_members(ctf.channel_id)
             present = slack_wrapper.get_channel_members(challenge_channel_id)
@@ -458,7 +460,12 @@ class AddChallengeCommand(Command):
                 )
 
         # New Challenge
-        challenge = Challenge(ctf.channel_id, challenge_channel_id, name, category)
+        challenge = Challenge(
+            ctf_channel_id=ctf.channel_id,
+            channel_id=challenge_channel_id,
+            name=name,
+            category=category,
+        )
 
         # Update database
         ctfs = pickle.load(open(ChallengeHandler.DB, "rb"))
@@ -659,7 +666,7 @@ class StatusCommand(Command):
         member_list = slack_wrapper.get_members()
 
         # Bail out, if we couldn't read member list
-        if not "members" in member_list:
+        if "members" not in member_list:
             raise InvalidCommand("Status failed. Could not refresh member list...")
 
         members = {
@@ -845,7 +852,7 @@ class WorkonCommand(Command):
         for ctf in ctfs.values():
             for chal in ctf.challenges:
                 if chal.channel_id == challenge.channel_id:
-                    chal.add_player(Player(user_id))
+                    chal.add_player(Player(user_id=user_id))
 
         pickle.dump(ctfs, open(ChallengeHandler.DB, "wb"))
 
@@ -964,7 +971,7 @@ class UnsolveCommand(Command):
         cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Unsolve command."""
-        challenge = ""
+        challenge: [Type[Challenge], None] = None
 
         if args:
             challenge = get_challenge_from_args(ChallengeHandler.DB, args, channel_id)
@@ -1048,7 +1055,7 @@ class ArchiveCTFCommand(Command):
         # Show confirmation message
         slack_wrapper.post_message(channel_id, message)
 
-        # If configured to do so, archive the main CTF channel also to cleanup
+        # If configured to do so, archive the main CTF channel also to clean up
         if handler_factory.botserver.get_config_option("archive_everything"):
             slack_wrapper.archive_channel(channel_id)
         else:
@@ -1129,7 +1136,7 @@ class ReloadCommand(Command):
 
 
 class AddCredsCommand(Command):
-    """Add credential informations for current ctf."""
+    """Add credential information for current ctf."""
 
     @classmethod
     def execute(
@@ -1161,7 +1168,7 @@ class AddCredsCommand(Command):
 
 
 class ShowCredsCommand(Command):
-    """Shows credential informations for current ctf."""
+    """Shows credential information for current ctf."""
 
     @classmethod
     def execute(
@@ -1227,106 +1234,103 @@ class ChallengeHandler(BaseHandler):
     def __init__(self):
         self.commands = {
             "addctf": CommandDesc(
-                AddCTFCommand, "Adds a new ctf", ["ctf_name", "long_name"], None
+                command=AddCTFCommand,
+                description="Adds a new ctf",
+                arguments=["ctf_name", "long_name"],
             ),
             "addchallenge": CommandDesc(
-                AddChallengeCommand,
-                "Adds a new challenge for current ctf",
-                ["challenge_name"],
-                ["challenge_category"],
+                command=AddChallengeCommand,
+                description="Adds a new challenge for current ctf",
+                arguments=["challenge_name"],
+                opt_arguments=["challenge_category"],
             ),
             "workon": CommandDesc(
-                WorkonCommand,
-                "Show that you're working on a challenge",
-                None,
-                ["challenge_name"],
+                command=WorkonCommand,
+                description="Show that you're working on a challenge",
+                opt_arguments=["challenge_name"],
             ),
             "status": CommandDesc(
-                StatusCommand,
-                "Show the status for all ongoing ctf's",
-                None,
-                ["category"],
+                command=StatusCommand,
+                description="Show the status for all ongoing ctf's",
+                opt_arguments=["category"],
             ),
             "signup": CommandDesc(
-                SignupCommand, "Join a CTF", None, ["ctf_name"], None
+                command=SignupCommand,
+                description="Join a CTF",
+                opt_arguments=["ctf_name"],
             ),
             "solve": CommandDesc(
-                SolveCommand,
-                "Mark a challenge as solved",
-                None,
-                ["challenge_name", "support_member"],
+                command=SolveCommand,
+                description="Mark a challenge as solved",
+                opt_arguments=["challenge_name", "support_member"],
             ),
             "renamechallenge": CommandDesc(
-                RenameChallengeCommand,
-                "Renames a challenge",
-                ["old_challenge_name", "new_challenge_name"],
-                None,
+                command=RenameChallengeCommand,
+                description="Renames a challenge",
+                arguments=["old_challenge_name", "new_challenge_name"],
             ),
             "renamectf": CommandDesc(
-                RenameCTFCommand,
-                "Renames a ctf",
-                ["old_ctf_name", "new_ctf_name"],
-                None,
+                command=RenameCTFCommand,
+                description="Renames a ctf",
+                arguments=["old_ctf_name", "new_ctf_name"],
             ),
             "reload": CommandDesc(
-                ReloadCommand, "Reload ctf information from slack", None, None, True
+                command=ReloadCommand,
+                description="Reload ctf information from slack",
+                is_admin_cmd=True,
             ),
             "archivectf": CommandDesc(
-                ArchiveCTFCommand,
-                "Archive the challenges of a ctf",
-                None,
-                ["nopost"],
-                True,
+                command=ArchiveCTFCommand,
+                description="Archive the challenges of a ctf",
+                opt_arguments=["nopost"],
+                is_admin_cmd=True,
             ),
             "endctf": CommandDesc(
-                EndCTFCommand,
-                "Mark a ctf as ended, but not archive it directly",
-                None,
-                None,
-                True,
+                command=EndCTFCommand,
+                description="Mark a ctf as ended, but not archive it directly",
+                is_admin_cmd=True,
             ),
             "addcreds": CommandDesc(
-                AddCredsCommand,
-                "Add credentials for current ctf",
-                ["ctf_user", "ctf_pw"],
-                ["ctf_url"],
+                command=AddCredsCommand,
+                description="Add credentials for current ctf",
+                arguments=["ctf_user", "ctf_pw"],
+                opt_arguments=["ctf_url"],
             ),
             "showcreds": CommandDesc(
-                ShowCredsCommand, "Show credentials for current ctf", None, None
+                command=ShowCredsCommand, description="Show credentials for current ctf"
             ),
             "tag": CommandDesc(
-                AddChallengeTagCommand,
-                "Add tag(s) to a challenge",
-                ["challenge_tag/name"],
-                ["[..challenge_tag(s)]"],
+                command=AddChallengeTagCommand,
+                description="Add tag(s) to a challenge",
+                arguments=["challenge_tag/name"],
+                opt_arguments=["[..challenge_tag(s)]"],
             ),
             "unsolve": CommandDesc(
-                UnsolveCommand, "Remove solve of a challenge", None, ["challenge_name"]
+                command=UnsolveCommand,
+                description="Remove solve of a challenge",
+                opt_arguments=["challenge_name"],
             ),
             "removechallenge": CommandDesc(
-                RemoveChallengeCommand,
-                "Remove challenge",
-                None,
-                ["challenge_name"],
-                True,
+                command=RemoveChallengeCommand,
+                description="Remove challenge",
+                opt_arguments=["challenge_name"],
+                is_admin_cmd=True,
             ),
             "removetag": CommandDesc(
-                RemoveChallengeTagCommand,
-                "Remove tag(s) from a challenge",
-                ["challenge_tag/name"],
-                ["[..challenge_tag(s)]"],
+                command=RemoveChallengeTagCommand,
+                description="Remove tag(s) from a challenge",
+                arguments=["challenge_tag/name"],
+                opt_arguments=["[..challenge_tag(s)]"],
             ),
             "populate": CommandDesc(
-                PopulateCommand,
-                "Invite all non-present members of the CTF challenge into the challenge channel",
-                None,
-                None,
+                command=PopulateCommand,
+                description="Invite all non-present members of the CTF challenge into the challenge channel",
             ),
-            "roll": CommandDesc(RollCommand, "Roll the dice", None, None),
+            "roll": CommandDesc(command=RollCommand, description="Roll the dice"),
         }
         self.reactions = {
-            "arrows_clockwise": ReactionDesc(UpdateStatusCommand),
-            "arrows_counterclockwise": ReactionDesc(UpdateShortStatusCommand),
+            "arrows_clockwise": ReactionDesc(command=UpdateStatusCommand),
+            "arrows_counterclockwise": ReactionDesc(command=UpdateShortStatusCommand),
         }
         self.aliases = {
             "finishctf": "endctf",
@@ -1374,7 +1378,11 @@ class ChallengeHandler(BaseHandler):
                     and "ctf_bot" in purpose
                     and purpose["type"] == "CTF"
                 ):
-                    ctf = CTF(channel["id"], purpose["name"], purpose["long_name"])
+                    ctf = CTF(
+                        channel_id=channel["id"],
+                        name=purpose["name"],
+                        long_name=purpose["long_name"],
+                    )
 
                     ctf.cred_user = purpose.get("cred_user", "")
                     ctf.cred_pw = purpose.get("cred_pw", "")
@@ -1397,10 +1405,10 @@ class ChallengeHandler(BaseHandler):
                     and purpose["type"] == "CHALLENGE"
                 ):
                     challenge = Challenge(
-                        purpose["ctf_id"],
-                        channel["id"],
-                        purpose["name"],
-                        purpose.get("category"),
+                        ctf_channel_id=purpose["ctf_id"],
+                        channel_id=channel["id"],
+                        name=purpose["name"],
+                        category=purpose.get("category"),
                     )
                     ctf_channel_id = purpose["ctf_id"]
                     solvers = purpose["solved"]
@@ -1414,7 +1422,7 @@ class ChallengeHandler(BaseHandler):
                         members = slack_wrapper.get_channel_members(channel["id"])
                         for member_id in members:
                             if member_id != slack_wrapper.user_id:
-                                challenge.add_player(Player(member_id))
+                                challenge.add_player(Player(user_id=member_id))
 
                         ctf.add_challenge(challenge)
             except:

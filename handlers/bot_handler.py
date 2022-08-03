@@ -105,24 +105,24 @@ class BotHandler(BaseHandler):
 
     def __init__(self):
         self.commands = {
-            "ping": CommandDesc(PingCommand, "Ping the bot", None, None),
+            "ping": CommandDesc(command=PingCommand, description="Ping the bot"),
             "intro": CommandDesc(
-                IntroCommand, "Show an introduction message for new members", None, None
+                command=IntroCommand,
+                description="Show an introduction message for new members",
             ),
             "version": CommandDesc(
-                VersionCommand,
-                "Show git information about the running version of the bot",
-                None,
-                None,
+                command=VersionCommand,
+                description="Show git information about the running version of the bot",
             ),
             "invite": CommandDesc(
-                InviteCommand,
-                "Invite a list of members (using @username) to the current channel (smarter than /invite)",
-                ["user_list"],
-                None,
+                command=InviteCommand,
+                description="Invite a list of members (using @username) to the current channel (smarter than /invite)",
+                arguments=["user_list"],
             ),
             "sysinfo": CommandDesc(
-                SysInfoCommand, "Show system information", None, None, True
+                command=SysInfoCommand,
+                description="Show system information",
+                is_admin_cmd=True,
             ),
         }
 

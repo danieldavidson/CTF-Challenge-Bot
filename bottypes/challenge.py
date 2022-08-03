@@ -1,27 +1,27 @@
 import time
+from typing import Dict
+
+from pydantic import BaseModel
+
+from bottypes.player import Player
 
 
-class Challenge:
+class Challenge(BaseModel):
+    """
+    An object representation of an ongoing challenge.
+    """
+
     MAX_TAGS = 5
 
-    def __init__(self, ctf_channel_id, channel_id, name, category):
-        """
-        An object representation of an ongoing challenge.
-        ctf_channel_id : The slack id for the associated parent ctf channel
-        channel_id : The slack id for the associated channel
-        name : The name of the challenge
-        category : The category of the challenge
-        """
-
-        self.channel_id = channel_id
-        self.ctf_channel_id = ctf_channel_id
-        self.name = name
-        self.category = category
-        self.players = {}
-        self.is_solved = False
-        self.solver = None
-        self.solve_date = 0
-        self.tags = []
+    channel_id: str
+    ctf_channel_id: str
+    name: str
+    category: str
+    players: Dict[str, Player] = {}
+    is_solved = False
+    solver = []
+    solve_date = 0
+    tags = []
 
     def mark_as_solved(self, solver_list, solve_date=None):
         """
@@ -38,7 +38,7 @@ class Challenge:
         Unmark a challenge as solved.
         """
         self.is_solved = False
-        self.solver = None
+        self.solver = []
 
     def add_tag(self, tag):
         """

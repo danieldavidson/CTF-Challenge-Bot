@@ -1,18 +1,14 @@
 import json
 import os
 import threading
-import time
-
-from bottypes.invalid_console_command import InvalidConsoleCommand
-from handlers import *
-from handlers import handler_factory
-from util.loghandler import log
-from util.slack_wrapper import SlackWrapper
-from util.util import get_display_name, resolve_user_by_user_id
 
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-from slack_sdk.errors import SlackApiError
+
+from bottypes.invalid_console_command import InvalidConsoleCommand
+from handlers import handler_factory
+from util.loghandler import log
+from util.slack_wrapper import SlackWrapper
 
 
 class BotServer:
