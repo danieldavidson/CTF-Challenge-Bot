@@ -6,6 +6,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from bottypes.invalid_console_command import InvalidConsoleCommand
+from handlers import *
 from handlers import handler_factory
 from util.loghandler import log
 from util.slack_wrapper import SlackWrapper
@@ -100,8 +101,16 @@ class BotServer:
         command, params, channel, time_stamp, user = self.parse_slack_message(body)
 
         try:
-            log.debug("Received bot command : %s %s (%s)", command, params, channel)
-            handler_factory.process(self.slack_wrapper, command, params, time_stamp, channel, user)
+            log.info(
+                "Received bot command: %s %s from %s (%s)",
+                command,
+                params,
+                user,
+                channel,
+            )
+            handler_factory.process(
+                self.slack_wrapper, command, params, time_stamp, channel, user
+            )
         except Exception as e:
             log.exception(e)
 
