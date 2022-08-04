@@ -26,7 +26,8 @@ class StorageService:
             http_compress=True,  # enables gzip compression for request bodies
             http_auth=auth,
             use_ssl=True,
-            verify_certs=False
+            verify_certs=False,
+            ssl_show_warn=False
         )
 
     def add_ctf(self, ctf: CTF):
