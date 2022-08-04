@@ -13,7 +13,7 @@ class MakeCTFCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         if user_is_admin:
             purpose = {
@@ -37,7 +37,7 @@ class StartDebuggerCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         if user_is_admin:
             if handler_factory.botserver.get_config_option("maintenance_mode"):
@@ -55,7 +55,7 @@ class JoinChannelCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         if user_is_admin:
             channel = slack_wrapper.get_channel_by_name(args[0])
@@ -70,7 +70,7 @@ class ToggleMaintenanceModeCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ToggleMaintenanceModeCommand command."""
         mode = not bool(handler_factory.botserver.get_config_option("maintenance_mode"))
@@ -85,7 +85,7 @@ class ShowAdminsCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ShowAdmins command."""
 
@@ -122,7 +122,7 @@ class AddAdminCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the AddAdmin command."""
         user_object = resolve_user_by_user_id(slack_wrapper, args[0])
@@ -156,7 +156,7 @@ class RemoveAdminCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the RemoveAdmin command."""
         user = parse_user_id(args[0])
@@ -179,7 +179,7 @@ class AsCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the As command."""
         dest_user = args[0].lower()

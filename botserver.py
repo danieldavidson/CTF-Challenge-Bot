@@ -10,6 +10,7 @@ from handlers import *
 from handlers import handler_factory
 from util.loghandler import log
 from util.slack_wrapper import SlackWrapper
+from util.storage_service import StorageService
 
 
 class BotServer:
@@ -24,6 +25,7 @@ class BotServer:
         self.load_config()
         self.slack_wrapper = SlackWrapper()
         self.init_bot_data()
+        self.storage_service = StorageService()
 
     def lock(self):
         """Acquire global lock for working with global (not thread-safe) data."""
@@ -109,7 +111,7 @@ class BotServer:
                 channel,
             )
             handler_factory.process(
-                self.slack_wrapper, command, params, time_stamp, channel, user
+                self.slack_wrapper, self.storage_service, command, params, time_stamp, channel, user
             )
         except Exception as e:
             log.exception(e)

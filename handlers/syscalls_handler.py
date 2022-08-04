@@ -10,7 +10,7 @@ class ShowAvailableArchCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ShowAvailableArch command."""
         arch_list = SyscallsHandler.syscallInfo.get_available_architectures()
@@ -41,7 +41,7 @@ class ShowSyscallCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ShowSyscall command."""
         arch = SyscallsHandler.syscallInfo.get_arch(args[0].lower())

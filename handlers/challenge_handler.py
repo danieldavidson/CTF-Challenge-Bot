@@ -24,7 +24,7 @@ class SignupCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         enabled = handler_factory.botserver.get_config_option("allow_signup")
         ctf = get_ctf_by_name(ChallengeHandler.DB, args[0])
@@ -56,7 +56,7 @@ class PopulateCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         if not ctf:
@@ -83,7 +83,7 @@ class AddChallengeTagCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
 
         tags = None
@@ -118,7 +118,7 @@ class RemoveChallengeTagCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
 
         tags = None
@@ -153,7 +153,7 @@ class RollCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute Roll command."""
         val = randint(0, 100)
@@ -175,7 +175,7 @@ class AddCTFCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute AddCTF command."""
         name = args[0].lower()
@@ -245,7 +245,7 @@ class RenameChallengeCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         old_name = args[0].lower()
         new_name = args[1].lower()
@@ -313,7 +313,7 @@ class RenameCTFCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         old_name = args[0].lower()
         new_name = args[1].lower()
@@ -391,7 +391,7 @@ class AddChallengeCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the AddChallenge command."""
         name = args[0].lower()
@@ -487,7 +487,7 @@ class RemoveChallengeCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the RemoveChallenge command."""
         challenge_name = args[0].lower() if args else None
@@ -537,7 +537,7 @@ class UpdateStatusCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the UpdateStatus command."""
         timestamp = args["timestamp"]
@@ -574,7 +574,7 @@ class UpdateShortStatusCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the UpdateStatus command."""
         timestamp = args["timestamp"]
@@ -785,7 +785,7 @@ class StatusCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Status command."""
         verbose = args[0] == "-v" if args else False
@@ -816,7 +816,7 @@ class WorkonCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Workon command."""
         challenge_name = args[0].lower().strip("*") if args else None
@@ -864,7 +864,7 @@ class SolveCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Solve command."""
         challenge = ""
@@ -968,7 +968,7 @@ class UnsolveCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Unsolve command."""
         challenge: [Type[Challenge], None] = None
@@ -1022,7 +1022,7 @@ class ArchiveCTFCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ArchiveCTF command."""
         no_post = args[0].lower() if args else None
@@ -1095,7 +1095,7 @@ class EndCTFCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the EndCTF command."""
 
@@ -1126,7 +1126,7 @@ class ReloadCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Reload command."""
 
@@ -1140,7 +1140,7 @@ class AddCredsCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the AddCreds command."""
 
@@ -1172,7 +1172,7 @@ class ShowCredsCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ShowCreds command."""
 

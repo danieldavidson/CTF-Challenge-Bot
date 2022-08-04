@@ -37,7 +37,7 @@ def initialize(slack_wrapper, _botserver):
         handlers[handler].init(slack_wrapper)
 
 
-def process(slack_wrapper, command, message, timestamp, channel_id, user_id):
+def process(slack_wrapper, storage_service, command, message, timestamp, channel_id, user_id):
     log.debug(
         "Processing message: %s %s from %s (%s)", command, message, user_id, channel_id
     )
@@ -56,12 +56,13 @@ def process(slack_wrapper, command, message, timestamp, channel_id, user_id):
         return
 
     process_command(
-        slack_wrapper, command, message, args, timestamp, channel_id, user_id
+        slack_wrapper, storage_service, command, message, args, timestamp, channel_id, user_id
     )
 
 
 def process_command(
     slack_wrapper,
+    storage_service,
     command,
     message,
     args,
@@ -100,6 +101,7 @@ def process_command(
                     log.debug(f"Handler {handler} can handle {args}")
                     handler.process(
                         slack_wrapper,
+                        storage_service,
                         command,
                         args[2:],
                         timestamp,
@@ -125,6 +127,7 @@ def process_command(
                 ):  # Send command to handler
                     handler.process(
                         slack_wrapper,
+                        storage_service,
                         command,
                         args[1:],
                         timestamp,

@@ -87,7 +87,7 @@ class BaseHandler(ABC):
         return msg
 
     def process(
-        self, slack_wrapper, command, args, timestamp, channel, user, user_is_admin
+        self, slack_wrapper, storage_service, command, args, timestamp, channel, user, user_is_admin
     ):
         if handler_factory.botserver.get_config_option("maintenance_mode"):
             if user_is_admin:
@@ -104,6 +104,7 @@ class BaseHandler(ABC):
         if command in self.aliases:
             self.process(
                 slack_wrapper,
+                storage_service,
                 self.aliases[command],
                 args,
                 timestamp,
@@ -118,7 +119,7 @@ class BaseHandler(ABC):
                 if len(args) < len(cmd_descriptor.arguments):
                     raise InvalidCommand(self.command_usage(command, cmd_descriptor))
                 cmd_descriptor.command.execute(
-                    slack_wrapper, args, timestamp, channel, user, user_is_admin
+                    slack_wrapper, storage_service, args, timestamp, channel, user, user_is_admin
                 )
 
     def process_reaction(

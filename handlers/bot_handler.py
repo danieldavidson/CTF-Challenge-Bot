@@ -15,7 +15,7 @@ class PingCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Announce the bot's presence in the channel."""
         slack_wrapper.post_message(channel_id, "Pong!", user_id=user_id)
@@ -26,7 +26,7 @@ class IntroCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Intro command."""
         with open("./config/config.json") as f:
@@ -40,7 +40,7 @@ class VersionCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Version command."""
         try:
@@ -62,7 +62,7 @@ class InviteCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         current_members = slack_wrapper.get_channel_members(channel_id)
         # strip uid formatting
@@ -89,7 +89,7 @@ class SysInfoCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         result = b"```\n"
         result += b"\n".join(subprocess.check_output(["top", "-bn1"]).split(b"\n")[:20])
