@@ -1,9 +1,11 @@
+import os
 from typing import Any, Dict
 
 from opensearchpy import OpenSearch
 from opensearchpy.exceptions import NotFoundError
 from pydantic import ValidationError
 
+from bottypes.challenge import Challenge
 from bottypes.ctf import CTF
 from util.loghandler import log
 
@@ -16,18 +18,20 @@ class StorageService:
     """
 
     def __init__(self):
-        host = '192.168.2.15'
-        port = 9200
-        auth = ('admin', 'admin')  # For testing only. Don't store credentials in code.
+        host = os.environ.get("STORAGE_HOST", default="127.0.0.1")
+        port = int(os.environ.get("STORAGE_PORT", default=9200))
+        auth = (
+            os.environ.get("STORAGE_USERNAME", default="admin"),
+            os.environ.get("STORAGE_USERNAME", default="admin"),
+        )  # For testing only. Don't store credentials in code.
 
-        # Create the client with SSL/TLS enabled, but hostname verification disabled.
         self.client = OpenSearch(
-            hosts=[{'host': host, 'port': port}],
-            http_compress=True,  # enables gzip compression for request bodies
+            hosts=[{"host": host, "port": port}],
+            http_compress=True,
             http_auth=auth,
             use_ssl=True,
             verify_certs=False,
-            ssl_show_warn=False
+            ssl_show_warn=False,
         )
 
     def add_ctf(self, ctf: CTF):
@@ -47,9 +51,9 @@ class StorageService:
                 pass
         if not ctf_doc and ctf_name:
             query = {
-                'query': {
-                    'term': {
-                        'name': ctf_name,
+                "query": {
+                    "term": {
+                        "name": ctf_name,
                     }
                 }
             }
@@ -65,6 +69,58 @@ class StorageService:
 
     def remove_ctf(self, ctf_id: str):
         self.delete(CTF_INDEX, ctf_id)
+
+    def add_challenge(self, challenge: Challenge, ctf_id: str = ""):
+        ctf = self.get_ctf(ctf_id)
+        if not ctf:
+            raise ValueError(f"No CTF with id {ctf_id}.")
+        ctf.add_challenge(challenge)
+        self.add_ctf(ctf)
+
+    def get_challenge(
+        self, challenge_id: str = "", challenge_name: str = "", ctf_id: str = ""
+    ) -> Challenge | None:
+        if not (challenge_id or challenge_name):
+            raise ValueError("One of challenge_id or challenge_name must be specified.")
+
+        the_chal_dict = {}
+        if challenge_id and ctf_id:
+            ctf = self.get_ctf(ctf_id=ctf_id)
+            if ctf:
+                challenges = ctf.challenges
+                for challenge in challenges:
+                    if challenge.channel_id == challenge_id:
+                        return challenge
+        elif challenge_name and ctf_id:
+            ctf = self.get_ctf(ctf_id=ctf_id)
+            if ctf:
+                challenges = ctf.challenges
+                for challenge in challenges:
+                    if challenge.name == challenge_name:
+                        return challenge
+        elif challenge_id and not ctf_id:
+            the_chal_dict = self._search_all_ctfs_for_challenge(
+                "channel_id", challenge_id
+            )
+        elif challenge_name and not ctf_id:
+            the_chal_dict = self._search_all_ctfs_for_challenge("name", challenge_name)
+
+        try:
+            return Challenge.parse_obj(the_chal_dict)
+        except ValidationError as e:
+            log.warning(f"Failed to build Challenge from obj: {the_chal_dict}")
+            return None
+
+    def _search_all_ctfs_for_challenge(self, field: str, value: str) -> Dict:
+        query = {"query": {"match_all": {}}}
+        result = self.search(CTF_INDEX, query)
+        the_chal_dict = {}
+        if result["hits"]["total"]["value"] > 0:
+            for ctf_dict in result["hits"]["hits"]:
+                for chal_dict in ctf_dict["_source"]["challenges"]:
+                    if value == chal_dict[field]:
+                        the_chal_dict = chal_dict
+        return the_chal_dict
 
     def add(self, index: str, document: Dict[Any, Any], doc_id: str):
         self.client.index(index=index, body=document, id=doc_id, refresh=True)
