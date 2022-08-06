@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from opensearchpy import OpenSearch
 from opensearchpy.exceptions import NotFoundError
@@ -70,12 +70,31 @@ class StorageService:
     def remove_ctf(self, ctf_id: str):
         self.delete(CTF_INDEX, ctf_id)
 
+    def update_ctf(self, ctf_id, update_func) -> CTF | None:
+        ctf = self.get_ctf(ctf_id=ctf_id)
+        if ctf:
+            update_func(ctf)
+            self.add_ctf(ctf)
+            return ctf
+        return None
+
+    def update_ctf_name(self, ctf_id: str, ctf_name: str):
+        self.update(CTF, {"doc": {"name": ctf_name}}, ctf_id)
+        ctf = self.get_ctf(ctf_id=ctf_id)
+        ctf.name = ctf_name
+        self.add_ctf(ctf)
+
     def add_challenge(self, challenge: Challenge, ctf_id: str = ""):
         ctf = self.get_ctf(ctf_id)
         if not ctf:
             raise ValueError(f"No CTF with id {ctf_id}.")
         ctf.add_challenge(challenge)
         self.add_ctf(ctf)
+
+    def get_challenges(self, ctf_id: str = "") -> List[Challenge]:
+        ctf = self.get_ctf(ctf_id=ctf_id)
+        if ctf:
+            return ctf.challenges
 
     def get_challenge(
         self, challenge_id: str = "", challenge_name: str = "", ctf_id: str = ""
@@ -111,6 +130,28 @@ class StorageService:
             log.warning(f"Failed to build Challenge from obj: {the_chal_dict}")
             return None
 
+    def remove_challenge(self, challenge_id: str = "", ctf_id: str = ""):
+        ctf = self.get_ctf(ctf_id=ctf_id)
+        ctf.challenges = list(
+            filter(
+                lambda challenge: challenge.channel_id != challenge_id,
+                ctf.challenges,
+            )
+        )
+        self.add_ctf(ctf)
+
+    def update_challenge_name(self, challenge_id: str, new_name: str):
+        challenge_dict = self._search_all_ctfs_for_challenge(
+            "channel_id", challenge_id
+        )
+        ctf_id = challenge_dict["ctf_channel_id"]
+        ctf = self.get_ctf(ctf_id=ctf_id)
+        for chal in ctf.challenges:
+            if chal.channel_id == challenge_id:
+                chal.name = new_name
+                break
+        self.add_ctf(ctf)
+
     def _search_all_ctfs_for_challenge(self, field: str, value: str) -> Dict:
         query = {"query": {"match_all": {}}}
         result = self.search(CTF_INDEX, query)
@@ -124,6 +165,9 @@ class StorageService:
 
     def add(self, index: str, document: Dict[Any, Any], doc_id: str):
         self.client.index(index=index, body=document, id=doc_id, refresh=True)
+
+    def update(self, index: str, document: Dict[Any, Any], doc_id: str):
+        self.client.update(index=index, body=document, id=doc_id, refresh=True)
 
     def get(self, index: str, doc_id: str):
         return self.client.get(index=index, id=doc_id)
