@@ -34,7 +34,7 @@ def initialize(slack_wrapper, _botserver):
     global botserver
     botserver = _botserver
     for handler in handlers:
-        handlers[handler].init(slack_wrapper)
+        handlers[handler].init(slack_wrapper, _botserver.storage_service)
 
 
 def process(slack_wrapper, storage_service, command, message, timestamp, channel_id, user_id):

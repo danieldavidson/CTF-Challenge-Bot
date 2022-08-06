@@ -14,6 +14,7 @@ from bottypes.reaction_descriptor import ReactionDesc
 from handlers import handler_factory
 from handlers.base_handler import BaseHandler
 from util.loghandler import log
+from util.storage_service import StorageService
 from util.util import *
 
 
@@ -24,7 +25,7 @@ class SignupCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         enabled = handler_factory.botserver.get_config_option("allow_signup")
         ctf = get_ctf_by_name(ChallengeHandler.DB, args[0])
@@ -56,7 +57,7 @@ class PopulateCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         if not ctf:
@@ -83,7 +84,7 @@ class AddChallengeTagCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
 
         tags = None
@@ -118,7 +119,7 @@ class RemoveChallengeTagCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
 
         tags = None
@@ -153,7 +154,7 @@ class RollCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute Roll command."""
         val = randint(0, 100)
@@ -175,7 +176,7 @@ class AddCTFCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute AddCTF command."""
         name = args[0].lower()
@@ -218,9 +219,7 @@ class AddCTFCommand(Command):
         ctf = CTF(channel_id=ctf_channel_id, name=name, long_name=long_name)
 
         # Update list of CTFs
-        ctfs = pickle.load(open(ChallengeHandler.DB, "rb"))
-        ctfs[ctf.channel_id] = ctf
-        pickle.dump(ctfs, open(ChallengeHandler.DB, "wb"))
+        storage_service.add_ctf(ctf)
 
         # Add purpose tag for persistance
         ChallengeHandler.update_ctf_purpose(slack_wrapper, ctf)
@@ -245,7 +244,7 @@ class RenameChallengeCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         old_name = args[0].lower()
         new_name = args[1].lower()
@@ -313,7 +312,7 @@ class RenameCTFCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         old_name = args[0].lower()
         new_name = args[1].lower()
@@ -391,7 +390,7 @@ class AddChallengeCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the AddChallenge command."""
         name = args[0].lower()
@@ -468,10 +467,7 @@ class AddChallengeCommand(Command):
         )
 
         # Update database
-        ctfs = pickle.load(open(ChallengeHandler.DB, "rb"))
-        ctf = ctfs[ctf.channel_id]
-        ctf.add_challenge(challenge)
-        pickle.dump(ctfs, open(ChallengeHandler.DB, "wb"))
+        storage_service.add_challenge(challenge, ctf.channel_id)
 
         # Notify the channel
         text = "New challenge *{0}* created in private channel (type `!workon {0}` to join).".format(
@@ -487,7 +483,7 @@ class RemoveChallengeCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the RemoveChallenge command."""
         challenge_name = args[0].lower() if args else None
@@ -537,7 +533,7 @@ class UpdateStatusCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the UpdateStatus command."""
         timestamp = args["timestamp"]
@@ -554,15 +550,8 @@ class UpdateStatusCommand(Command):
                 )
                 category = category_match.group(1) if category_match else ""
 
-                status, _ = StatusCommand().build_status_message(
-                    slack_wrapper,
-                    None,
-                    channel_id,
-                    user_id,
-                    user_is_admin,
-                    True,
-                    category,
-                )
+                status, _ = StatusCommand().build_status_message(slack_wrapper, storage_service, None, channel_id, user_id,
+                                                                 user_is_admin, True, category)
 
                 slack_wrapper.update_message(channel_id, timestamp, status)
 
@@ -574,7 +563,7 @@ class UpdateShortStatusCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the UpdateStatus command."""
         timestamp = args["timestamp"]
@@ -586,9 +575,8 @@ class UpdateShortStatusCommand(Command):
         if result["ok"] and result["messages"]:
             text = result["messages"][0]["text"]
             if "solved /" in text or "no running CTFs" in text:
-                status, _ = StatusCommand().build_status_message(
-                    slack_wrapper, None, channel_id, user_id, user_is_admin, False
-                )
+                status, _ = StatusCommand().build_status_message(slack_wrapper, storage_service, None, channel_id, user_id,
+                                                                 user_is_admin, False)
 
                 slack_wrapper.update_message(channel_id, timestamp, status)
 
@@ -750,18 +738,10 @@ class StatusCommand(Command):
         return response
 
     @classmethod
-    def build_status_message(
-        cls,
-        slack_wrapper,
-        args,
-        channel_id,
-        user_id,
-        user_is_admin,
-        verbose=True,
-        category="",
-    ):
+    def build_status_message(cls, slack_wrapper, storage_service: StorageService, args, channel_id, user_id, user_is_admin,
+                             verbose=True, category=""):
         """Gathers the ctf information and builds the status response."""
-        ctfs = pickle.load(open(ChallengeHandler.DB, "rb"))
+        ctfs = storage_service.get_ctfs()
 
         # Check if the user is in a ctf channel
         current_ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
@@ -771,7 +751,7 @@ class StatusCommand(Command):
             check_for_finish = False
             verbose = True  # override verbose for ctf channels
         else:
-            ctf_list = ctfs.values()
+            ctf_list = ctfs
             check_for_finish = True
 
         if verbose:
@@ -785,7 +765,7 @@ class StatusCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Status command."""
         verbose = args[0] == "-v" if args else False
@@ -795,9 +775,8 @@ class StatusCommand(Command):
         else:
             category = args[0] if args else ""
 
-        response, verbose = cls.build_status_message(
-            slack_wrapper, args, channel_id, user_id, user_is_admin, verbose, category
-        )
+        response, verbose = cls.build_status_message(slack_wrapper, storage_service, args, channel_id, user_id, user_is_admin,
+                                                     verbose, category)
 
         if verbose:
             slack_wrapper.post_message_with_react(
@@ -816,7 +795,7 @@ class WorkonCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Workon command."""
         challenge_name = args[0].lower().strip("*") if args else None
@@ -847,14 +826,8 @@ class WorkonCommand(Command):
         slack_wrapper.invite_user(user_id, challenge.channel_id, is_private=True)
 
         # Update database
-        ctfs = pickle.load(open(ChallengeHandler.DB, "rb"))
-
-        for ctf in ctfs.values():
-            for chal in ctf.challenges:
-                if chal.channel_id == challenge.channel_id:
-                    chal.add_player(Player(user_id=user_id))
-
-        pickle.dump(ctfs, open(ChallengeHandler.DB, "wb"))
+        challenge.add_player(Player(user_id=user_id))
+        storage_service.add_challenge(challenge, challenge.ctf_channel_id)
 
 
 class SolveCommand(Command):
@@ -864,22 +837,20 @@ class SolveCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Solve command."""
-        challenge = ""
-
         if args:
-            challenge = get_challenge_from_args(ChallengeHandler.DB, args, channel_id)
+            challenge: Challenge = get_challenge_from_args(ChallengeHandler.DB, args, channel_id)
 
             if not challenge:
-                challenge = get_challenge_by_channel_id(ChallengeHandler.DB, channel_id)
+                challenge: Challenge = get_challenge_by_channel_id(ChallengeHandler.DB, channel_id)
                 additional_args = args if args else []
             else:
                 additional_args = args[1:] if len(args) > 1 else []
         else:
             # No arguments => direct way of resolving challenge
-            challenge = get_challenge_by_channel_id(ChallengeHandler.DB, channel_id)
+            challenge: Challenge = get_challenge_by_channel_id(ChallengeHandler.DB, channel_id)
 
             additional_args = []
 
@@ -904,61 +875,55 @@ class SolveCommand(Command):
                 additional_solver.append(add_solve)
 
         # Update database
-        ctfs = pickle.load(open(ChallengeHandler.DB, "rb"))
+        if not challenge.is_solved:
+            # Check for finished ctf
+            ctf = storage_service.get_ctf(ctf_id=challenge.ctf_channel_id)
+            if ctf.finished and not user_is_admin:
+                raise InvalidCommand(
+                    "Solve challenge faild: CTF *{}* is over...".format(
+                        ctf.name
+                    )
+                )
 
-        for ctf in ctfs.values():
-            for chal in ctf.challenges:
-                if chal.channel_id == challenge.channel_id:
-                    if not challenge.is_solved:
-                        # Check for finished ctf
-                        if ctf.finished and not user_is_admin:
-                            raise InvalidCommand(
-                                "Solve challenge faild: CTF *{}* is over...".format(
-                                    ctf.name
-                                )
-                            )
+            member = slack_wrapper.get_member(user_id)
+            solver_list = [get_display_name(member)] + additional_solver
 
-                        member = slack_wrapper.get_member(user_id)
-                        solver_list = [get_display_name(member)] + additional_solver
+            challenge.mark_as_solved(solver_list)
+            ctf.add_challenge(challenge)
+            storage_service.add_ctf(ctf)
 
-                        chal.mark_as_solved(solver_list)
+            # Update channel purpose
+            purpose = dict(ChallengeHandler.CHALL_PURPOSE)
+            purpose["name"] = challenge.name
+            purpose["ctf_id"] = ctf.channel_id
+            purpose["solved"] = solver_list
+            purpose["solve_date"] = challenge.solve_date
+            purpose["category"] = challenge.category
 
-                        pickle.dump(ctfs, open(ChallengeHandler.DB, "wb"))
+            purpose = json.dumps(purpose)
+            slack_wrapper.set_purpose(
+                challenge.channel_id, purpose, is_private=True
+            )
 
-                        # Update channel purpose
-                        purpose = dict(ChallengeHandler.CHALL_PURPOSE)
-                        purpose["name"] = challenge.name
-                        purpose["ctf_id"] = ctf.channel_id
-                        purpose["solved"] = solver_list
-                        purpose["solve_date"] = chal.solve_date
-                        purpose["category"] = chal.category
+            # Announce the CTF channel
+            help_members = ""
 
-                        purpose = json.dumps(purpose)
-                        slack_wrapper.set_purpose(
-                            challenge.channel_id, purpose, is_private=True
-                        )
+            if additional_solver:
+                help_members = "(together with {})".format(
+                    ", ".join(additional_solver)
+                )
 
-                        # Announce the CTF channel
-                        help_members = ""
+            message = (
+                '@here *{}* : {} has solved the "{}" challenge {}'.format(
+                    challenge.name,
+                    get_display_name(member),
+                    challenge.name,
+                    help_members,
+                )
+            )
+            message += "."
 
-                        if additional_solver:
-                            help_members = "(together with {})".format(
-                                ", ".join(additional_solver)
-                            )
-
-                        message = (
-                            '@here *{}* : {} has solved the "{}" challenge {}'.format(
-                                challenge.name,
-                                get_display_name(member),
-                                challenge.name,
-                                help_members,
-                            )
-                        )
-                        message += "."
-
-                        slack_wrapper.post_message(ctf.channel_id, message)
-
-                    break
+            slack_wrapper.post_message(ctf.channel_id, message)
 
 
 class UnsolveCommand(Command):
@@ -968,7 +933,7 @@ class UnsolveCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Unsolve command."""
         challenge: [Type[Challenge], None] = None
@@ -983,38 +948,35 @@ class UnsolveCommand(Command):
             raise InvalidCommand("This challenge does not exist.")
 
         # Update database
-        ctfs = pickle.load(open(ChallengeHandler.DB, "rb"))
+        if challenge.is_solved:
+            member = slack_wrapper.get_member(user_id)
 
-        for ctf in ctfs.values():
-            for chal in ctf.challenges:
-                if chal.channel_id == challenge.channel_id:
-                    if challenge.is_solved:
-                        member = slack_wrapper.get_member(user_id)
+            challenge.unmark_as_solved()
 
-                        chal.unmark_as_solved()
+            ctf = storage_service.get_ctf(ctf_id=challenge.ctf_channel_id)
+            ctf.add_challenge(challenge)
+            storage_service.add_challenge(ctf)
 
-                        pickle.dump(ctfs, open(ChallengeHandler.DB, "wb"))
+            # Update channel purpose
+            purpose = dict(ChallengeHandler.CHALL_PURPOSE)
+            purpose["name"] = challenge.name
+            purpose["ctf_id"] = challenge.ctf_channel_id
+            purpose["category"] = challenge.category
 
-                        # Update channel purpose
-                        purpose = dict(ChallengeHandler.CHALL_PURPOSE)
-                        purpose["name"] = challenge.name
-                        purpose["ctf_id"] = ctf.channel_id
-                        purpose["category"] = challenge.category
+            purpose = json.dumps(purpose)
+            slack_wrapper.set_purpose(
+                challenge.channel_id, purpose, is_private=True
+            )
 
-                        purpose = json.dumps(purpose)
-                        slack_wrapper.set_purpose(
-                            challenge.channel_id, purpose, is_private=True
-                        )
+            # Announce the CTF channel
+            message = '@here *{}* : {} has reset the solve on the "{}" challenge.'.format(
+                challenge.name, get_display_name(member), challenge.name
+            )
+            slack_wrapper.post_message(ctf.channel_id, message)
 
-                        # Announce the CTF channel
-                        message = '@here *{}* : {} has reset the solve on the "{}" challenge.'.format(
-                            challenge.name, get_display_name(member), challenge.name
-                        )
-                        slack_wrapper.post_message(ctf.channel_id, message)
+            return
 
-                        return
-
-                    raise InvalidCommand("This challenge isn't marked as solve.")
+        raise InvalidCommand("This challenge isn't marked as solve.")
 
 
 class ArchiveCTFCommand(Command):
@@ -1022,7 +984,7 @@ class ArchiveCTFCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ArchiveCTF command."""
         no_post = args[0].lower() if args else None
@@ -1095,7 +1057,7 @@ class EndCTFCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the EndCTF command."""
 
@@ -1126,12 +1088,12 @@ class ReloadCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the Reload command."""
 
         slack_wrapper.post_message(channel_id, "Updating CTFs and challenges...")
-        ChallengeHandler.update_database_from_slack(slack_wrapper)
+        ChallengeHandler.update_database_from_slack(slack_wrapper, storage_service)
         slack_wrapper.post_message(channel_id, "Update finished...")
 
 
@@ -1140,7 +1102,7 @@ class AddCredsCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the AddCreds command."""
 
@@ -1172,7 +1134,7 @@ class ShowCredsCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service: StorageService, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ShowCreds command."""
 
@@ -1359,7 +1321,7 @@ class ChallengeHandler(BaseHandler):
         slack_wrapper.set_purpose(ctf.channel_id, purpose)
 
     @staticmethod
-    def update_database_from_slack(slack_wrapper):
+    def update_database_from_slack(slack_wrapper, storage_service):
         """
         Reload the ctf and challenge information from slack.
         """
@@ -1429,10 +1391,11 @@ class ChallengeHandler(BaseHandler):
                 pass
 
         # Create the database accordingly
-        pickle.dump(database, open(ChallengeHandler.DB, "wb+"))
+        for _ctf in database.values():
+            storage_service.add_ctf(_ctf)
 
-    def init(self, slack_wrapper):
-        ChallengeHandler.update_database_from_slack(slack_wrapper)
+    def init(self, slack_wrapper, storage_service):
+        ChallengeHandler.update_database_from_slack(slack_wrapper, storage_service)
 
 
 # Register this handler

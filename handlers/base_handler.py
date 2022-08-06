@@ -28,7 +28,7 @@ class BaseHandler(ABC):
             return True
         return False
 
-    def init(self, slack_wrapper):
+    def init(self, slack_wrapper, storage_service):
         pass
 
     def get_aliases_for_command(self, command):

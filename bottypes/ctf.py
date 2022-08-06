@@ -19,10 +19,16 @@ class CTF(BaseModel):
     finished = False
     finished_on = 0
 
-    def add_challenge(self, challenge):
+    def add_challenge(self, _challenge):
         """
         Add a challenge object to the list of challenges belonging
         to this CTF.
         challenge : A challenge object
         """
-        self.challenges.append(challenge)
+        self.challenges = list(
+            filter(
+                lambda challenge: challenge.channel_id != _challenge.channel_id,
+                self.challenges,
+            )
+        )
+        self.challenges.append(_challenge)

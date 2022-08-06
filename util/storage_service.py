@@ -37,6 +37,18 @@ class StorageService:
     def add_ctf(self, ctf: CTF):
         self.add(CTF_INDEX, ctf.dict(), ctf.channel_id)
 
+    def get_ctfs(self) -> List[CTF]:
+        ctf_list = []
+        query = {"query": {"match_all": {}}}
+        result = self.search(CTF_INDEX, query)
+        if result["hits"]["total"]["value"] > 0:
+            for ctf_dict in result["hits"]["hits"]:
+                try:
+                    ctf_list.append(CTF.parse_obj(ctf_dict))
+                except ValidationError as e:
+                    log.warning(f"Failed to build Challenge from obj: {ctf_dict}")
+        return ctf_list
+
     def get_ctf(self, ctf_id: str = "", ctf_name: str = "") -> CTF | None:
         if not (ctf_id or ctf_name):
             raise ValueError("One of ctf_id or ctf_name must be specified.")
@@ -79,12 +91,12 @@ class StorageService:
         return None
 
     def update_ctf_name(self, ctf_id: str, ctf_name: str):
-        self.update(CTF, {"doc": {"name": ctf_name}}, ctf_id)
+        self.update(CTF_INDEX, {"doc": {"name": ctf_name}}, ctf_id)
         ctf = self.get_ctf(ctf_id=ctf_id)
         ctf.name = ctf_name
         self.add_ctf(ctf)
 
-    def add_challenge(self, challenge: Challenge, ctf_id: str = ""):
+    def add_challenge(self, challenge: Challenge, ctf_id: str):
         ctf = self.get_ctf(ctf_id)
         if not ctf:
             raise ValueError(f"No CTF with id {ctf_id}.")
@@ -140,17 +152,34 @@ class StorageService:
         )
         self.add_ctf(ctf)
 
-    def update_challenge_name(self, challenge_id: str, new_name: str):
-        challenge_dict = self._search_all_ctfs_for_challenge(
-            "channel_id", challenge_id
-        )
-        ctf_id = challenge_dict["ctf_channel_id"]
-        ctf = self.get_ctf(ctf_id=ctf_id)
-        for chal in ctf.challenges:
-            if chal.channel_id == challenge_id:
-                chal.name = new_name
-                break
-        self.add_ctf(ctf)
+    def update_challenge(self, challenge_id: str, update_func: Any, ctf_id: str = ""):
+        if ctf_id:
+            ctf = self.get_ctf(ctf_id=ctf_id)
+        else:
+            challenge_dict = self._search_all_ctfs_for_challenge(
+                "channel_id", challenge_id
+            )
+            ctf_id = challenge_dict["ctf_channel_id"]
+            ctf = self.get_ctf(ctf_id=ctf_id)
+        if ctf:
+            for challenge in ctf.challenges:
+                if challenge.channel_id == challenge_id:
+                    update_func(challenge)
+            self.add_ctf(ctf)
+        else:
+            log.warning(f"No CTF with id {ctf_id} found.")
+
+    # def update_challenge_name(self, challenge_id: str, new_name: str):
+    #     challenge_dict = self._search_all_ctfs_for_challenge(
+    #         "channel_id", challenge_id
+    #     )
+    #     ctf_id = challenge_dict["ctf_channel_id"]
+    #     ctf = self.get_ctf(ctf_id=ctf_id)
+    #     for chal in ctf.challenges:
+    #         if chal.channel_id == challenge_id:
+    #             chal.name = new_name
+    #             break
+    #     self.add_ctf(ctf)
 
     def _search_all_ctfs_for_challenge(self, field: str, value: str) -> Dict:
         query = {"query": {"match_all": {}}}
