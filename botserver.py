@@ -24,8 +24,8 @@ class BotServer:
         self.config = {}
         self.load_config()
         self.slack_wrapper = SlackWrapper()
-        self.init_bot_data()
         self.storage_service = StorageService()
+        self.init_bot_data()
 
     def lock(self):
         """Acquire global lock for working with global (not thread-safe) data."""
@@ -97,7 +97,7 @@ class BotServer:
 
         # Might even pass the bot server for handlers?
         log.info("Initializing handlers...")
-        handler_factory.initialize(self.slack_wrapper, self)
+        handler_factory.initialize(self.slack_wrapper, self, self.storage_service)
 
     def handle_message(self, body):
         command, params, channel, time_stamp, user = self.parse_slack_message(body)

@@ -1,5 +1,6 @@
 import json
 import os
+from json import JSONDecodeError
 
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -99,10 +100,13 @@ class SlackWrapper:
         channel_info = self.get_channel_info(channel_id, is_private)
 
         if channel_info:
-            purpose = json.loads(channel_info["channel"]["purpose"]["value"])
-            purpose["name"] = new_name
+            try:
+                purpose = json.loads(channel_info["channel"]["purpose"]["value"])
+                purpose["name"] = new_name
 
-            self.set_purpose(channel_id, json.dumps(purpose), is_private)
+                self.set_purpose(channel_id, json.dumps(purpose), is_private)
+            except JSONDecodeError:
+                log.error(f"Failed to decode {channel_info}")
 
     def post_message(self, channel_id, text, timestamp="", parse="full", user_id=None):
         """

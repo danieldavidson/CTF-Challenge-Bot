@@ -31,6 +31,7 @@ oauth_config:
       - reactions:read
       - reactions:write
       - users:read
+      - groups:write
 settings:
   interactivity:
     is_enabled: true

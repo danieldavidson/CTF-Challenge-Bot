@@ -25,7 +25,7 @@ def register(handler_name, handler):
     handler.handler_name = handler_name
 
 
-def initialize(slack_wrapper, _botserver):
+def initialize(slack_wrapper, _botserver, storage_service):
     """
     Initializes all handler with common information.
 
@@ -34,7 +34,7 @@ def initialize(slack_wrapper, _botserver):
     global botserver
     botserver = _botserver
     for handler in handlers:
-        handlers[handler].init(slack_wrapper, _botserver.storage_service)
+        handlers[handler].init(slack_wrapper, storage_service)
 
 
 def process(slack_wrapper, storage_service, command, message, timestamp, channel_id, user_id):
