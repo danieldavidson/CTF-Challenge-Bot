@@ -39,7 +39,7 @@ class StorageService:
 
     def get_ctfs(self) -> List[CTF]:
         ctf_list = []
-        query = {"query": {"match_all": {}}}
+        query: Dict = {"query": {"match_all": {}}}
         result = self.search(CTF_INDEX, query)
         if result["hits"]["total"]["value"] > 0:
             for ctf_dict in result["hits"]["hits"]:
@@ -108,6 +108,7 @@ class StorageService:
         ctf = self.get_ctf(ctf_id=ctf_id)
         if ctf:
             return ctf.challenges
+        return []
 
     def get_challenge(
         self, challenge_id: str = "", challenge_name: str = "", ctf_id: str = ""
@@ -181,7 +182,7 @@ class StorageService:
         self.add_ctf(ctf)
 
     def _search_all_ctfs_for_challenge(self, field: str, value: str) -> Dict:
-        query = {"query": {"match_all": {}}}
+        query: Dict = {"query": {"match_all": {}}}
         result = self.search(CTF_INDEX, query)
         the_chal_dict = {}
         if result["hits"]["total"]["value"] > 0:

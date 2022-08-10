@@ -1,5 +1,5 @@
 import time
-from typing import Dict
+from typing import Dict, List
 
 from pydantic import BaseModel
 
@@ -19,9 +19,9 @@ class Challenge(BaseModel):
     category: str
     players: Dict[str, Player] = {}
     is_solved = False
-    solver = []
+    solver: List[str] = []
     solve_date = 0
-    tags = []
+    tags: List[str] = []
 
     def mark_as_solved(self, solver_list, solve_date=None):
         """

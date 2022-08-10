@@ -530,8 +530,7 @@ class AddChallengeCommand(Command):
         purpose["ctf_id"] = ctf.channel_id
         purpose["category"] = category
 
-        purpose = json.dumps(purpose)
-        slack_wrapper.set_purpose(challenge_channel_id, purpose, is_private=True)
+        slack_wrapper.set_purpose(challenge_channel_id, json.dumps(purpose), is_private=True)
 
         if handler_factory.botserver.get_config_option("auto_invite") is True:
             # Invite everyone in the ctf channel
@@ -595,7 +594,6 @@ class RemoveChallengeCommand(Command):
             )
 
         # Get challenge object for challenge name or channel id
-        challenge = ""
         # if challenge_name:
         #     challenge = get_challenge_by_name(
         #         ChallengeHandler.DB, challenge_name, channel_id
@@ -971,7 +969,6 @@ class WorkonCommand(Command):
             raise InvalidCommand("Workon failed: You are not in a CTF channel.")
 
         # Get challenge object for challenge name or channel id
-        challenge = ""
         # if challenge_name:
         #     challenge = get_challenge_by_name(
         #         ChallengeHandler.DB, challenge_name, channel_id
@@ -1073,12 +1070,11 @@ class SolveCommand(Command):
             purpose = dict(ChallengeHandler.CHALL_PURPOSE)
             purpose["name"] = challenge.name
             purpose["ctf_id"] = ctf.channel_id
-            purpose["solved"] = solver_list
-            purpose["solve_date"] = challenge.solve_date
+            purpose["solved"] = str(solver_list)
+            purpose["solve_date"] = str(challenge.solve_date)
             purpose["category"] = challenge.category
 
-            purpose = json.dumps(purpose)
-            slack_wrapper.set_purpose(challenge.channel_id, purpose, is_private=True)
+            slack_wrapper.set_purpose(challenge.channel_id, json.dumps(purpose), is_private=True)
 
             # Announce the CTF channel
             help_members = ""
@@ -1114,7 +1110,7 @@ class UnsolveCommand(Command):
         user_is_admin,
     ):
         """Execute the Unsolve command."""
-        challenge: [Type[Challenge], None] = None
+        challenge: Challenge | None = None
 
         if args:
             # challenge = get_challenge_from_args(ChallengeHandler.DB, args, channel_id)
@@ -1145,8 +1141,7 @@ class UnsolveCommand(Command):
             purpose["ctf_id"] = challenge.ctf_channel_id
             purpose["category"] = challenge.category
 
-            purpose = json.dumps(purpose)
-            slack_wrapper.set_purpose(challenge.channel_id, purpose, is_private=True)
+            slack_wrapper.set_purpose(challenge.channel_id, json.dumps(purpose), is_private=True)
 
             # Announce the CTF channel
             message = (
@@ -1544,7 +1539,7 @@ class ChallengeHandler(BaseHandler):
         purpose["finished"] = ctf.finished
         purpose["finished_on"] = ctf.finished_on
 
-        slack_wrapper.set_purpose(ctf.channel_id, purpose)
+        slack_wrapper.set_purpose(ctf.channel_id, json.dumps(purpose))
 
     @staticmethod
     def update_database_from_slack(slack_wrapper, storage_service):

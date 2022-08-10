@@ -1,3 +1,5 @@
+import json
+
 from bottypes.command import Command
 from bottypes.command_descriptor import CommandDesc
 from bottypes.invalid_command import InvalidCommand
@@ -26,7 +28,7 @@ class MakeCTFCommand(Command):
                 "finished": False,
                 "finished_on": "",
             }
-            slack_wrapper.set_purpose(channel_id, purpose)
+            slack_wrapper.set_purpose(channel_id, json.dumps(purpose))
 
 
 class StartDebuggerCommand(Command):

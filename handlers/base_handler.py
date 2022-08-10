@@ -1,14 +1,17 @@
 from abc import ABC
+from typing import Dict
 
+from bottypes.command_descriptor import CommandDesc
 from bottypes.invalid_command import InvalidCommand
+from bottypes.reaction_descriptor import ReactionDesc
 from handlers import handler_factory
 
 
 class BaseHandler(ABC):
-    commands = {}  # Overridden by concrete class
-    aliases = {}  # Overridden by concrete class
-    reactions = {}
-    handler_name = ""  # Overridden by concrete class
+    commands: Dict[str, CommandDesc] = {}  # Overridden by concrete class
+    aliases: Dict[str, str] = {}  # Overridden by concrete class
+    reactions: Dict[str, ReactionDesc] = {}
+    handler_name: str = ""  # Overridden by concrete class
 
     def can_handle(self, command, user_is_admin):
         if command in self.commands:

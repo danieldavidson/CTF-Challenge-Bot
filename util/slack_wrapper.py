@@ -29,7 +29,7 @@ class SlackWrapper:
         users = [users] if not type(users) == list else users
         return self.client.conversations_invite(channel=channel, users=users)
 
-    def set_purpose(self, channel, purpose, is_private=False):
+    def set_purpose(self, channel: str, purpose: str, is_private=False):
         """
         Set the purpose of a given channel.
         """
@@ -135,7 +135,7 @@ class SlackWrapper:
                 )
 
     def post_message_with_react(
-        self, channel_id, text, reaction, parse="full", user_id=None
+            self, channel_id, text, reaction, parse="full", user_id=None
     ):
         """Post a message in a given channel and add the specified reaction to it."""
 

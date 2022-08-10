@@ -16,7 +16,6 @@ from util.storage_service import StorageService
 class BotServer:
     # Global lock for locking global data in bot server
     thread_lock = threading.Lock()
-    user_list = {}
 
     def __init__(self):
         log.debug("Parse config file and initialize threading...")
