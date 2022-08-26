@@ -49,12 +49,16 @@ class StorageService:
                     log.warning(f"Failed to build Challenge from obj: {ctf_dict}")
         return ctf_list
 
-    def get_ctf(self, ctf_id: str = "", ctf_name: str = "") -> CTF | None:
-        # TODO util.util.get_ctf_by_channel_id matches on a challenge id
+    def get_ctf(self, ctf_id: str = "", ctf_name: str = "", challenge_id="") -> CTF | None:
         if not (ctf_id or ctf_name):
             raise ValueError("One of ctf_id or ctf_name must be specified.")
 
         ctf_doc = {}
+        if challenge_id and not ctf_id:
+            the_chal_dict = self._search_all_ctfs_for_challenge(
+                "channel_id", challenge_id
+            )
+            ctf_id = the_chal_dict.get("ctf_channel_id")
         if ctf_id:
             try:
                 result = self.get(CTF_INDEX, ctf_id)
