@@ -2,7 +2,6 @@ import json
 import re
 import time
 from random import randint
-from typing import Type
 
 from dateutil.relativedelta import relativedelta
 from slack_sdk.errors import SlackApiError
@@ -19,7 +18,6 @@ from handlers.base_handler import BaseHandler
 from util.loghandler import log
 from util.storage_service import StorageService
 from util.util import (
-    get_challenge_from_args_or_channel,
     get_display_name,
     is_valid_name,
     get_display_name_from_user,
@@ -124,11 +122,8 @@ class AddChallengeTagCommand(Command):
         user_is_admin,
     ):
 
-        raise InvalidCommand("Not implemented.")
         tags = None
-        challenge = get_challenge_from_args_or_channel(
-            ChallengeHandler.DB, args, channel_id
-        )
+        challenge = storage_service.get_challenge_from_args_or_channel(args, channel_id)
 
         if challenge.channel_id == channel_id:
             # We were called from the Challenge channel
@@ -149,7 +144,7 @@ class AddChallengeTagCommand(Command):
 
             # Save challenge iff it was modified
             if dirty:
-                save_challenge(ChallengeHandler.DB, challenge)
+                storage_service.add_challenge(challenge)
 
 
 class RemoveChallengeTagCommand(Command):
@@ -167,11 +162,8 @@ class RemoveChallengeTagCommand(Command):
         user_is_admin,
     ):
 
-        raise InvalidCommand("Not implemented.")
         tags = None
-        challenge = get_challenge_from_args_or_channel(
-            ChallengeHandler.DB, args, channel_id
-        )
+        challenge = storage_service.get_challenge_from_args_or_channel(args, channel_id)
 
         if challenge.channel_id == channel_id:
             # We were called from the Challenge channel
@@ -192,7 +184,7 @@ class RemoveChallengeTagCommand(Command):
 
             # Save challenge iff it was modified
             if dirty:
-                save_challenge(ChallengeHandler.DB, challenge)
+                storage_service.add_challenge(challenge)
 
 
 class RollCommand(Command):
@@ -530,7 +522,9 @@ class AddChallengeCommand(Command):
         purpose["ctf_id"] = ctf.channel_id
         purpose["category"] = category
 
-        slack_wrapper.set_purpose(challenge_channel_id, json.dumps(purpose), is_private=True)
+        slack_wrapper.set_purpose(
+            challenge_channel_id, json.dumps(purpose), is_private=True
+        )
 
         if handler_factory.botserver.get_config_option("auto_invite") is True:
             # Invite everyone in the ctf channel
@@ -1074,7 +1068,9 @@ class SolveCommand(Command):
             purpose["solve_date"] = str(challenge.solve_date)
             purpose["category"] = challenge.category
 
-            slack_wrapper.set_purpose(challenge.channel_id, json.dumps(purpose), is_private=True)
+            slack_wrapper.set_purpose(
+                challenge.channel_id, json.dumps(purpose), is_private=True
+            )
 
             # Announce the CTF channel
             help_members = ""
@@ -1141,7 +1137,9 @@ class UnsolveCommand(Command):
             purpose["ctf_id"] = challenge.ctf_channel_id
             purpose["category"] = challenge.category
 
-            slack_wrapper.set_purpose(challenge.channel_id, json.dumps(purpose), is_private=True)
+            slack_wrapper.set_purpose(
+                challenge.channel_id, json.dumps(purpose), is_private=True
+            )
 
             # Announce the CTF channel
             message = (

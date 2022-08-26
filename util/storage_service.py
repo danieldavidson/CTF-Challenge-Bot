@@ -49,7 +49,9 @@ class StorageService:
                     log.warning(f"Failed to build Challenge from obj: {ctf_dict}")
         return ctf_list
 
-    def get_ctf(self, ctf_id: str = "", ctf_name: str = "", challenge_id="") -> CTF | None:
+    def get_ctf(
+        self, ctf_id: str = "", ctf_name: str = "", challenge_id=""
+    ) -> CTF | None:
         if not (ctf_id or ctf_name):
             raise ValueError("One of ctf_id or ctf_name must be specified.")
 
@@ -195,6 +197,29 @@ class StorageService:
                     if value == chal_dict[field]:
                         the_chal_dict = chal_dict
         return the_chal_dict
+
+    def get_challenge_from_args_or_channel(self, args, channel_id) -> Challenge | None:
+        """
+        Helper method for getting a Challenge either from arguments or current channel.
+        Return the corresponding Challenge if called from a challenge channel.
+        Return the Challenge corresponding to the first argument if called from the
+        CTF channel.
+        Return None if no Challenge can be found.
+        """
+
+        # Check if we're currently in a challenge channel
+        current_chal = self.get_challenge(challenge_id=channel_id)
+
+        if current_chal:
+            # User is in the challenge channel
+            challenge = current_chal
+        else:
+            # Assume user is in the ctf channel
+            challenge_name = args[0].lower().strip("*")
+            challenge = self.get_challenge(
+                challenge_name=challenge_name, ctf_id=channel_id
+            )
+        return challenge
 
     def add(self, index: str, document: Dict[Any, Any], doc_id: str):
         self.client.index(index=index, body=document, id=doc_id, refresh=True)
