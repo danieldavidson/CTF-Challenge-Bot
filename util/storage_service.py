@@ -72,7 +72,7 @@ class StorageService:
                 if result["found"] is True:
                     ctf_doc = result["_source"]
             except NotFoundError as e:
-                log.info(f"Get ctf with id {ctf_id}: {e}")
+                log.info(f"CTF with id {ctf_id} not found.")
         if not ctf_doc and ctf_name:
             query = {
                 "query": {
@@ -84,6 +84,8 @@ class StorageService:
             result = self.search(CTF_INDEX, query)
             if result["hits"]["total"]["value"] > 0:
                 ctf_doc = result["hits"]["hits"][0]["_source"]
+            else:
+                log.info(f"CTF with name {ctf_name} not found.")
 
         try:
             if ctf_doc:
