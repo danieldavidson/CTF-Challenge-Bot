@@ -620,90 +620,6 @@ class RemoveChallengeCommand(Command):
         )
 
 
-class UpdateStatusCommand(Command):
-    """
-    Updates the status information, when the refresh reaction was clicked.
-    """
-
-    @classmethod
-    def execute(
-        cls,
-        slack_wrapper,
-        storage_service: StorageService,
-        args,
-        timestamp,
-        channel_id,
-        user_id,
-        user_is_admin,
-    ):
-        """Execute the UpdateStatus command."""
-        timestamp = args["timestamp"]
-
-        # Check message content, if the emoji was placed on a status message
-        # (no tagging atm, so just check it starts like a status message)
-        result = slack_wrapper.get_message(channel_id, timestamp)
-
-        if result["ok"] and result["messages"]:
-            if "==========" in result["messages"][0]["text"]:
-                # check if status contained a category and only update for category then
-                category_match = re.search(
-                    r"=== .*? \[(.*?)\] ====", result["messages"][0]["text"], re.S
-                )
-                category = category_match.group(1) if category_match else ""
-
-                status, _ = StatusCommand().build_status_message(
-                    slack_wrapper,
-                    storage_service,
-                    None,
-                    channel_id,
-                    user_id,
-                    user_is_admin,
-                    True,
-                    category,
-                )
-
-                slack_wrapper.update_message(channel_id, timestamp, status)
-
-
-class UpdateShortStatusCommand(Command):
-    """
-    Updates short status information, when the refresh reaction was clicked.
-    """
-
-    @classmethod
-    def execute(
-        cls,
-        slack_wrapper,
-        storage_service: StorageService,
-        args,
-        timestamp,
-        channel_id,
-        user_id,
-        user_is_admin,
-    ):
-        """Execute the UpdateStatus command."""
-        timestamp = args["timestamp"]
-
-        # Check message content, if the emoji was placed on a status message
-        # (no tagging atm, so just check it starts like a status message)
-        result = slack_wrapper.get_message(channel_id, timestamp)
-
-        if result["ok"] and result["messages"]:
-            text = result["messages"][0]["text"]
-            if "solved /" in text or "no running CTFs" in text:
-                status, _ = StatusCommand().build_status_message(
-                    slack_wrapper,
-                    storage_service,
-                    None,
-                    channel_id,
-                    user_id,
-                    user_is_admin,
-                    False,
-                )
-
-                slack_wrapper.update_message(channel_id, timestamp, status)
-
-
 class StatusCommand(Command):
     """
     Get a status of the currently running CTFs.
@@ -927,12 +843,12 @@ class StatusCommand(Command):
         )
 
         if verbose:
-            slack_wrapper.post_message_with_react(
-                channel_id, response, "arrows_clockwise", user_id=user_id
+            slack_wrapper.post_message(
+                channel_id, response, user_id=user_id
             )
         else:
-            slack_wrapper.post_message_with_react(
-                channel_id, response, "arrows_counterclockwise", user_id=user_id
+            slack_wrapper.post_message(
+                channel_id, response, user_id=user_id
             )
 
 
@@ -1508,10 +1424,6 @@ class ChallengeHandler(BaseHandler):
                 description="Invite all non-present members of the CTF challenge into the challenge channel",
             ),
             "roll": CommandDesc(command=RollCommand, description="Roll the dice"),
-        }
-        self.reactions = {
-            "arrows_clockwise": ReactionDesc(command=UpdateStatusCommand),
-            "arrows_counterclockwise": ReactionDesc(command=UpdateShortStatusCommand),
         }
         self.aliases = {
             "finishctf": "endctf",

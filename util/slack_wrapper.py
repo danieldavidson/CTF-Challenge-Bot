@@ -139,14 +139,14 @@ class SlackWrapper:
     ):
         """Post a message in a given channel and add the specified reaction to it."""
 
-        try:
-            result = self.client.chat_postMessage(
-                channel=channel_id,
-                text=text,
-                as_user=True,
-                parse=parse,
-            )
+        result = self.client.chat_postMessage(
+            channel=channel_id,
+            text=text,
+            as_user=True,
+            parse=parse,
+        )
 
+        try:
             if result["ok"]:
                 self.client.reactions_add(
                     channel=channel_id,
@@ -154,14 +154,7 @@ class SlackWrapper:
                     timestamp=result["ts"],
                 )
         except SlackApiError as e:
-            log.debug(e)
-            if user_id is not None:
-                result = self.client.chat_postMessage(
-                    channel=user_id,
-                    text=text,
-                    as_user=True,
-                    parse=parse,
-                )
+            log.warning(e)
 
     def get_message(self, channel_id, timestamp):
         """Retrieve a message from the channel with the specified timestamp."""

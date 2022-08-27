@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, List
 
 from opensearchpy import OpenSearch
-from opensearchpy.exceptions import NotFoundError
+from opensearchpy.exceptions import NotFoundError, RequestError
 from pydantic import ValidationError
 
 from bottypes.challenge import Challenge
@@ -33,6 +33,11 @@ class StorageService:
             verify_certs=False,
             ssl_show_warn=False,
         )
+        try:
+            response = self.client.indices.create(CTF_INDEX)
+            log.debug(f"Creating index: {response}")
+        except RequestError as e:
+            log.debug(f"Creating index: {e}")
 
     def add_ctf(self, ctf: CTF):
         self.add(CTF_INDEX, ctf.dict(), ctf.channel_id)
@@ -66,8 +71,8 @@ class StorageService:
                 result = self.get(CTF_INDEX, ctf_id)
                 if result["found"] is True:
                     ctf_doc = result["_source"]
-            except NotFoundError:
-                pass
+            except NotFoundError as e:
+                log.info(f"Get ctf with id {ctf_id}: {e}")
         if not ctf_doc and ctf_name:
             query = {
                 "query": {
@@ -81,7 +86,8 @@ class StorageService:
                 ctf_doc = result["hits"]["hits"][0]["_source"]
 
         try:
-            return CTF.parse_obj(ctf_doc)
+            if ctf_doc:
+                return CTF.parse_obj(ctf_doc)
         except ValidationError as e:
             log.warning(f"Failed to build CTF from obj: {ctf_doc}")
             return None
