@@ -553,7 +553,7 @@ class AddChallengeCommand(Command):
         storage_service.add_challenge(challenge, ctf.channel_id)
 
         # Notify the channel
-        text = "New challenge *{0}* created in private channel (type `!workon {0}` to join).".format(
+        text = "New challenge *{0}* created in private channel (type `\ctf workon {0}` to join).".format(
             name
         )
         slack_wrapper.post_message(channel_id, text)
@@ -1295,16 +1295,16 @@ class ChallengeHandler(BaseHandler):
 
     Commands :
     # Create a defcon-25-quals channel
-    !ctf addctf "defcon 25 quals"
+    \ctf addctf "defcon 25 quals"
 
     # Create a web-100 channel
-    !ctf addchallenge "web 100" "defcon 25 quals"
+    \ctf addchallenge "web 100" "defcon 25 quals"
 
     # Kick member from other ctf challenge channels and invite the member to the web 100 channel
-    !ctf workon "web100"
+    \ctf workon "web100"
 
     # Get status of all CTFs
-    !ctf status
+    \ctf status
     """
 
     DB = "databases/challenge_handler.bin"
