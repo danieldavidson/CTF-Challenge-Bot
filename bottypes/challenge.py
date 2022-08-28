@@ -16,7 +16,7 @@ class Challenge(BaseModel):
     channel_id: str
     ctf_channel_id: str
     name: str
-    category: str
+    category: str = ""
     players: Dict[str, Player] = {}
     is_solved = False
     solver: List[str] = []

@@ -475,7 +475,7 @@ class AddChallengeCommand(Command):
     ):
         """Execute the AddChallenge command."""
         name = args[0].lower()
-        category = args[1] if len(args) > 1 else None
+        category = args[1] if len(args) > 1 else ""
 
         # Validate that the user is in a CTF channel
         # ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
