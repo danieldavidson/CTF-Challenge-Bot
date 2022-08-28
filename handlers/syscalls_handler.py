@@ -78,11 +78,11 @@ class SyscallsHandler(BaseHandler):
 
     Commands :
     # Show available architectures
-    \syscalls available
+    /syscalls available
 
     # Show syscall information
-    \syscalls show x86 execve
-    \syscalls show x86 11
+    /syscalls show x86 execve
+    /syscalls show x86 11
     """
 
     # Specify the base directory, where the syscall tables are located

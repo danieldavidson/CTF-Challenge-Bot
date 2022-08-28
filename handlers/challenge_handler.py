@@ -232,7 +232,7 @@ class AddCTFCommand(Command):
     ):
         """Execute AddCTF command."""
         name = args[0].lower()
-        long_name = " ".join(args[1:])
+        long_name = " ".join(args[1:]) if len(args) > 1 else ""
 
         # Don't allow incorrectly parsed long names
         if "<http" in long_name:
@@ -553,7 +553,7 @@ class AddChallengeCommand(Command):
         storage_service.add_challenge(challenge, ctf.channel_id)
 
         # Notify the channel
-        text = "New challenge *{0}* created in private channel (type `\ctf workon {0}` to join).".format(
+        text = "New challenge *{0}* created in private channel (type `/ctf workon {0}` to join).".format(
             name
         )
         slack_wrapper.post_message(channel_id, text)
@@ -1294,17 +1294,17 @@ class ChallengeHandler(BaseHandler):
     Manages everything related to challenge coordination.
 
     Commands :
-    # Create a defcon-25-quals channel
-    \ctf addctf "defcon 25 quals"
+    # Create a defcon_25_quals channel
+    /ctf addctf defcon_25_quals
 
-    # Create a web-100 channel
-    \ctf addchallenge "web 100" "defcon 25 quals"
+    # Create a web_100 channel
+    /ctf addchallenge web_100
 
-    # Kick member from other ctf challenge channels and invite the member to the web 100 channel
-    \ctf workon "web100"
+    # Kick member from other ctf challenge channels and invite the member to the web_100 channel
+    /ctf workon web_100
 
     # Get status of all CTFs
-    \ctf status
+    /ctf status
     """
 
     DB = "databases/challenge_handler.bin"
@@ -1333,7 +1333,8 @@ class ChallengeHandler(BaseHandler):
             "addctf": CommandDesc(
                 command=AddCTFCommand,
                 description="Adds a new ctf",
-                arguments=["ctf_name", "long_name"],
+                arguments=["ctf_name"],
+                opt_arguments=["long_name"],
             ),
             "addchallenge": CommandDesc(
                 command=AddChallengeCommand,
@@ -1348,7 +1349,7 @@ class ChallengeHandler(BaseHandler):
             ),
             "status": CommandDesc(
                 command=StatusCommand,
-                description="Show the status for all ongoing ctf's",
+                description="Show the status for all ongoing ctfs",
                 opt_arguments=["category"],
             ),
             "signup": CommandDesc(

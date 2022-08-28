@@ -12,7 +12,7 @@ class CTF(BaseModel):
 
     channel_id: str
     name: str
-    long_name: str
+    long_name: str = ""
     challenges: List[Challenge] = []
     cred_user = ""
     cred_pw = ""
