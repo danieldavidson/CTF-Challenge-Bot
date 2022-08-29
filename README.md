@@ -1,6 +1,6 @@
 # CTF Challenge Bot
 
-The CTF challenge bot is a helper tool to be used during CTF events through the Slack platform.
+The CTF challenge bot is a Slack app that helps keep your team communication organized during CTF events.
 
 ## Features
 
@@ -16,16 +16,16 @@ Secondary features :
 ## Usage
 
 ```
-/ctf addctf <ctf_name>                                          (Adds a new ctf)
-/ctf addchallenge <challenge_name> <challenge_category>         (Adds a new challenge for current ctf)
-/ctf tag [<challenge_name>] <tag> [..<tag>]                     (Adds a tag to a challenge)
+/ctf addctf <ctf_name> [long_name]                              (Adds a new ctf)
+/ctf addchallenge <challenge_name> [challenge_category]         (Adds a new challenge for current ctf)
+/ctf tag [challenge_name] <tag> [..<tag>]                       (Adds a tag to a challenge)
 /ctf workon [challenge_name]                                    (Show that you're working on a challenge)
 /ctf status                                                     (Show the status for all ongoing ctf's)
 /ctf solve [challenge_name] [support_member]                    (Mark a challenge as solved)
 /ctf renamechallenge <old_challenge_name> <new_challenge_name>  (Renames a challenge)
 /ctf renamectf <old_ctf_name> <new_ctf_name>                    (Renames a ctf)
 /ctf reload                                                     (Reload ctf information from slack)
-/ctf removetag [<challenge_name] <tag> [..<tag>]                (Remove a tag from a challenge)
+/ctf removetag [challenge_name] <tag> [..<tag>]                (Remove a tag from a challenge)
 /ctf archivectf                                                 (Archive the challenges of a ctf)
 /ctf addcreds <ctf_user> <ctf_pw> [ctf_url]                     (Add credentials for current ctf)
 /ctf showcreds                                                  (Show credentials for current ctf)
@@ -59,9 +59,9 @@ Secondary features :
 1. Follow these steps for [setting your app credentials](https://api.slack.com/start/building/bolt-python#credentials).
 2. Follow this step for [setting your app-level token](https://api.slack.com/apis/connections/socket#sdks) for Socket Mode.
 3. Copy `config/config.json.template` to `config/config.json`.
-6. Add your user id (slack id, not the username) to `admin_users` group in `config/config.json`
-9. `docker build -t ctf-challenge-bot .`
-10. `docker run -it --rm --name live-ctf-challenge-bot ctf-challenge-bot`
+4. Add your user id (slack id, not the username) to `admin_users` group in `config/config.json`
+5. `docker build -t ctf-challenge-bot .`
+6. `docker run -it --rm --name live-ctf-challenge-bot ctf-challenge-bot`
 
 ## Development
 
