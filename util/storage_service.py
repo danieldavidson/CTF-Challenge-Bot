@@ -230,10 +230,16 @@ class StorageService:
         return challenge
 
     def add(self, index: str, document: Dict[Any, Any], doc_id: str):
-        self.client.index(index=index, body=document, id=doc_id, refresh=True)
+        response = self.client.index(
+            index=index, body=document, id=doc_id, refresh=True
+        )
+        log.debug(f"Adding document: {response}")
 
     def update(self, index: str, document: Dict[Any, Any], doc_id: str):
-        self.client.update(index=index, body=document, id=doc_id, refresh=True)
+        response = self.client.update(
+            index=index, body=document, id=doc_id, refresh=True
+        )
+        log.debug(f"Updating document: {response}")
 
     def get(self, index: str, doc_id: str):
         return self.client.get(index=index, id=doc_id)

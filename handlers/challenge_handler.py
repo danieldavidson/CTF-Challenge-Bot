@@ -843,13 +843,9 @@ class StatusCommand(Command):
         )
 
         if verbose:
-            slack_wrapper.post_message(
-                channel_id, response, user_id=user_id
-            )
+            slack_wrapper.post_message(channel_id, response, user_id=user_id)
         else:
-            slack_wrapper.post_message(
-                channel_id, response, user_id=user_id
-            )
+            slack_wrapper.post_message(channel_id, response, user_id=user_id)
 
 
 class WorkonCommand(Command):
@@ -1502,7 +1498,9 @@ class ChallengeHandler(BaseHandler):
                         ctf_channel_id=purpose["ctf_id"],
                         channel_id=channel["id"],
                         name=purpose["name"],
-                        category=purpose.get("category"),
+                        category=purpose.get("category")
+                        if purpose.get("category") is not None
+                        else "",
                     )
                     ctf_channel_id = purpose["ctf_id"]
                     solvers = purpose["solved"]
@@ -1515,19 +1513,15 @@ class ChallengeHandler(BaseHandler):
                     if ctf:
                         members = slack_wrapper.get_channel_members(channel["id"])
                         for member_id in members:
-                            if member_id != slack_wrapper.user_id:
-                                challenge.add_player(Player(user_id=member_id))
+                            challenge.add_player(Player(user_id=member_id))
 
                         ctf.add_challenge(challenge)
-            except:
-                pass
+            except Exception as e:
+                log.warning(e)
 
         # Create the database accordingly
         for _ctf in database.values():
             storage_service.add_ctf(_ctf)
-
-    def init(self, slack_wrapper, storage_service):
-        ChallengeHandler.update_database_from_slack(slack_wrapper, storage_service)
 
 
 # Register this handler
