@@ -144,7 +144,7 @@ class AddChallengeTagCommand(Command):
 
             # Save challenge iff it was modified
             if dirty:
-                storage_service.add_challenge(challenge)
+                storage_service.add_challenge(challenge, challenge.ctf_channel_id)
 
 
 class RemoveChallengeTagCommand(Command):
@@ -184,7 +184,7 @@ class RemoveChallengeTagCommand(Command):
 
             # Save challenge iff it was modified
             if dirty:
-                storage_service.add_challenge(challenge)
+                storage_service.add_challenge(challenge, challenge.ctf_channel_id)
 
 
 class RollCommand(Command):
