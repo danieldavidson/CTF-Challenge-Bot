@@ -1,5 +1,4 @@
 import json
-import re
 import time
 from random import randint
 
@@ -12,7 +11,6 @@ from bottypes.command_descriptor import CommandDesc
 from bottypes.ctf import CTF
 from bottypes.invalid_command import InvalidCommand
 from bottypes.player import Player
-from bottypes.reaction_descriptor import ReactionDesc
 from handlers import handler_factory
 from handlers.base_handler import BaseHandler
 from util.loghandler import log
@@ -45,7 +43,6 @@ class SignupCommand(Command):
         user_is_admin,
     ):
         enabled = handler_factory.botserver.get_config_option("allow_signup")
-        # ctf = get_ctf_by_name(ChallengeHandler.DB, args[0])
         ctf = storage_service.get_ctf(ctf_name=args[0])
         if not enabled or not ctf:
             raise InvalidCommand("No CTF by that name")
@@ -59,13 +56,12 @@ class SignupCommand(Command):
 
         # Ignore responses, because errors here don't matter
         if len(invites) > 0:
-            response = slack_wrapper.invite_user(invites, ctf.channel_id)
-        # for chall in get_challenges_for_ctf_id(ChallengeHandler.DB, ctf.channel_id):
+            slack_wrapper.invite_user(invites, ctf.channel_id)
         for chall in storage_service.get_challenges(ctf.channel_id):
             current = slack_wrapper.get_channel_members(chall.channel_id)
             invites = list(set(members) - set(current))
             if len(invites) > 0:
-                response = slack_wrapper.invite_user(invites, chall.channel_id)
+                slack_wrapper.invite_user(invites, chall.channel_id)
 
 
 class PopulateCommand(Command):
@@ -85,7 +81,6 @@ class PopulateCommand(Command):
         user_id,
         user_is_admin,
     ):
-        # ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         ctf = storage_service.get_ctf(ctf_id=channel_id)
         if not ctf:
             raise InvalidCommand(
@@ -99,7 +94,6 @@ class PopulateCommand(Command):
         # Ignore responses, because errors here don't matter
         if len(invites) > 0:
             slack_wrapper.invite_user(invites, ctf.channel_id)
-        # for chall in get_challenges_for_ctf_id(ChallengeHandler.DB, ctf.channel_id):
         for chall in storage_service.get_challenges(ctf.channel_id):
             current = slack_wrapper.get_channel_members(chall.channel_id)
             invites = list(set(members) - set(current))
@@ -309,7 +303,6 @@ class RenameChallengeCommand(Command):
         new_name = args[1].lower()
 
         # Validate that the user is in a CTF channel
-        # ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         ctf = storage_service.get_ctf(ctf_id=channel_id)
 
         if not ctf:
@@ -334,7 +327,6 @@ class RenameChallengeCommand(Command):
         new_channel_name = "{}-{}".format(ctf.name, new_name)
 
         # Get the channel id for the channel to rename
-        # challenge = get_challenge_by_name(ChallengeHandler.DB, old_name, ctf.channel_id)
         challenge = storage_service.get_challenge(
             challenge_name=old_name, ctf_id=ctf.channel_id
         )
@@ -362,7 +354,6 @@ class RenameChallengeCommand(Command):
         )
 
         # Update database
-        # update_challenge_name(ChallengeHandler.DB, challenge.channel_id, new_name)
         storage_service.update_challenge_name(challenge.channel_id, new_name)
 
         text = "Challenge `{}` renamed to `{}` (#{})".format(
@@ -388,7 +379,6 @@ class RenameCTFCommand(Command):
         old_name = args[0].lower()
         new_name = args[1].lower()
 
-        # ctf = get_ctf_by_name(ChallengeHandler.DB, old_name)
         ctf = storage_service.get_ctf(ctf_name=old_name)
 
         if not ctf:
@@ -438,7 +428,6 @@ class RenameCTFCommand(Command):
         slack_wrapper.update_channel_purpose_name(ctf.channel_id, new_name)
 
         # Update database
-        # update_ctf_name(ChallengeHandler.DB, ctf.channel_id, new_name)
         storage_service.update_ctf_name(ctf.channel_id, new_name)
 
         # Rename all challenge channels for this ctf
@@ -478,7 +467,6 @@ class AddChallengeCommand(Command):
         category = args[1] if len(args) > 1 else ""
 
         # Validate that the user is in a CTF channel
-        # ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         ctf = storage_service.get_ctf(ctf_id=channel_id)
 
         if not ctf:
@@ -579,7 +567,6 @@ class RemoveChallengeCommand(Command):
         challenge_name = args[0].lower() if args else None
 
         # Validate that current channel is a CTF channel
-        # ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         ctf = storage_service.get_ctf(ctf_id=channel_id)
 
         if not ctf:
@@ -587,13 +574,6 @@ class RemoveChallengeCommand(Command):
                 "Remove challenge failed: You are not in a CTF channel."
             )
 
-        # Get challenge object for challenge name or channel id
-        # if challenge_name:
-        #     challenge = get_challenge_by_name(
-        #         ChallengeHandler.DB, challenge_name, channel_id
-        #     )
-        # else:
-        #     challenge = get_challenge_by_channel_id(ChallengeHandler.DB, channel_id)
         challenge = storage_service.get_challenge(
             challenge_name=challenge_name, ctf_id=channel_id
         )
@@ -603,9 +583,6 @@ class RemoveChallengeCommand(Command):
 
         # Remove the challenge channel and ctf challenge entry
         slack_wrapper.archive_private_channel(challenge.channel_id)
-        # remove_challenge_by_channel_id(
-        #     ChallengeHandler.DB, challenge.channel_id, ctf.channel_id
-        # )
         storage_service.remove_challenge(challenge.channel_id, ctf.channel_id)
 
         # Show confirmation message
@@ -792,7 +769,6 @@ class StatusCommand(Command):
         ctfs = storage_service.get_ctfs()
 
         # Check if the user is in a ctf channel
-        # current_ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         current_ctf = storage_service.get_ctf(ctf_id=channel_id)
 
         if current_ctf:
@@ -868,19 +844,11 @@ class WorkonCommand(Command):
         challenge_name = args[0].lower().strip("*") if args else None
 
         # Validate that current channel is a CTF channel
-        # ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         ctf = storage_service.get_ctf(ctf_id=channel_id)
 
         if not ctf:
             raise InvalidCommand("Workon failed: You are not in a CTF channel.")
 
-        # Get challenge object for challenge name or channel id
-        # if challenge_name:
-        #     challenge = get_challenge_by_name(
-        #         ChallengeHandler.DB, challenge_name, channel_id
-        #     )
-        # else:
-        #     challenge = get_challenge_by_channel_id(ChallengeHandler.DB, channel_id)
         challenge = storage_service.get_challenge(
             challenge_name=challenge_name, ctf_id=channel_id
         )
@@ -918,20 +886,17 @@ class SolveCommand(Command):
     ):
         """Execute the Solve command."""
         if args:
-            # challenge: Challenge = get_challenge_from_args(ChallengeHandler.DB, args, channel_id)
             challenge = storage_service.get_challenge(
                 challenge_name=args[0].lower().strip("*"), ctf_id=channel_id
             )
 
             if not challenge:
-                # challenge: Challenge = get_challenge_by_channel_id(ChallengeHandler.DB, channel_id)
                 challenge = storage_service.get_challenge(challenge_id=channel_id)
                 additional_args = args if args else []
             else:
                 additional_args = args[1:] if len(args) > 1 else []
         else:
             # No arguments => direct way of resolving challenge
-            # challenge: Challenge = get_challenge_by_channel_id(ChallengeHandler.DB, channel_id)
             challenge = storage_service.get_challenge(challenge_id=channel_id)
 
             additional_args = []
@@ -1021,13 +986,11 @@ class UnsolveCommand(Command):
         challenge: Challenge | None = None
 
         if args:
-            # challenge = get_challenge_from_args(ChallengeHandler.DB, args, channel_id)
             challenge = storage_service.get_challenge(
                 challenge_name=args[0].lower().strip("*"), ctf_id=channel_id
             )
 
         if not challenge:
-            # challenge = get_challenge_by_channel_id(ChallengeHandler.DB, channel_id)
             challenge = storage_service.get_challenge(challenge_id=channel_id)
 
         if not challenge:
@@ -1083,22 +1046,17 @@ class ArchiveCTFCommand(Command):
         """Execute the ArchiveCTF command."""
         no_post = args[0].lower() if args else None
 
-        # ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         ctf = storage_service.get_ctf(ctf_id=channel_id)
         if not ctf or ctf.channel_id != channel_id:
             raise InvalidCommand("Archive CTF failed: You are not in a CTF channel.")
 
         # Get list of challenges
-        # challenges = get_challenges_for_ctf_id(ChallengeHandler.DB, channel_id)
         challenges = storage_service.get_challenges(channel_id)
 
         message = "Archived the following channels :\n"
         for challenge in challenges:
             message += "- #{}-{}\n".format(ctf.name, challenge.name)
             slack_wrapper.archive_channel(challenge.channel_id)
-            # remove_challenge_by_channel_id(
-            #     ChallengeHandler.DB, challenge.channel_id, ctf.channel_id
-            # )
             storage_service.remove_challenge(challenge.channel_id, ctf.channel_id)
 
         # Remove possible configured reminders for this ctf
@@ -1109,7 +1067,6 @@ class ArchiveCTFCommand(Command):
 
         # Stop tracking the main CTF channel
         slack_wrapper.set_purpose(channel_id, "")
-        # remove_ctf_by_channel_id(ChallengeHandler.DB, ctf.channel_id)
         storage_service.remove_ctf(ctf.channel_id)
 
         # Show confirmation message
@@ -1166,7 +1123,6 @@ class EndCTFCommand(Command):
     ):
         """Execute the EndCTF command."""
 
-        # ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         ctf = storage_service.get_ctf(ctf_id=channel_id)
         if not ctf:
             raise InvalidCommand("End CTF failed: You are not in a CTF channel.")
@@ -1179,7 +1135,6 @@ class EndCTFCommand(Command):
             ctf.finished_on = int(time.time())
 
         # Update database
-        # ctf = update_ctf(ChallengeHandler.DB, ctf.channel_id, update_func)
         ctf = storage_service.update_ctf(ctf.channel_id, update_func)
 
         if ctf:
@@ -1227,7 +1182,6 @@ class AddCredsCommand(Command):
     ):
         """Execute the AddCreds command."""
 
-        # cur_ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         cur_ctf = storage_service.get_ctf(ctf_id=channel_id)
         if not cur_ctf:
             raise InvalidCommand("Add Creds failed:. You are not in a CTF channel.")
@@ -1237,7 +1191,6 @@ class AddCredsCommand(Command):
             ctf.cred_pw = args[1]
 
         # Update database
-        # ctf = update_ctf(ChallengeHandler.DB, cur_ctf.channel_id, update_func)
         ctf = storage_service.update_ctf(cur_ctf, update_func)
 
         if ctf:
@@ -1268,7 +1221,6 @@ class ShowCredsCommand(Command):
     ):
         """Execute the ShowCreds command."""
 
-        # cur_ctf = get_ctf_by_channel_id(ChallengeHandler.DB, channel_id)
         cur_ctf = storage_service.get_ctf(ctf_id=channel_id)
         if not cur_ctf:
             raise InvalidCommand("Show creds failed: You are not in a CTF channel.")
