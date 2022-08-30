@@ -88,13 +88,8 @@ class BotServer:
         )
 
     def init_bot_data(self):
-        """
-        Fetches the bot user information such as
-        bot_name, bot_id and bot_at.
-        """
         self.running = True
 
-        # Might even pass the bot server for handlers?
         log.info("Initializing handlers...")
         handler_factory.initialize(self.slack_wrapper, self, self.storage_service)
 
