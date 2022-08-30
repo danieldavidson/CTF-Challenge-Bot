@@ -20,18 +20,10 @@ class StorageService:
     def __init__(self):
         host = os.environ.get("STORAGE_HOST", default="127.0.0.1")
         port = int(os.environ.get("STORAGE_PORT", default=9200))
-        auth = (
-            os.environ.get("STORAGE_USERNAME", default="admin"),
-            os.environ.get("STORAGE_USERNAME", default="admin"),
-        )  # For testing only. Don't store credentials in code.
 
         self.client = OpenSearch(
             hosts=[{"host": host, "port": port}],
             http_compress=True,
-            http_auth=auth,
-            use_ssl=True,
-            verify_certs=False,
-            ssl_show_warn=False,
         )
         try:
             response = self.client.indices.create(CTF_INDEX)
