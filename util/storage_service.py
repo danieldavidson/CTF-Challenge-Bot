@@ -89,7 +89,7 @@ class StorageService:
     def remove_ctf(self, ctf_id: str):
         self.delete(CTF_INDEX, ctf_id)
 
-    def update_ctf(self, ctf_id, update_func) -> CTF | None:
+    def update_ctf(self, ctf_id: str, update_func: Any) -> CTF | None:
         ctf = self.get_ctf(ctf_id=ctf_id)
         if ctf:
             update_func(ctf)

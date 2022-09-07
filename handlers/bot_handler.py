@@ -97,7 +97,7 @@ class SysInfoCommand(Command):
         result += subprocess.check_output(["df", "-h"])
         result += b"```\n"
 
-        slack_wrapper.post_message(user_id, result, user_id=user_id)
+        slack_wrapper.post_message(user_id, result.decode(), user_id=user_id)
 
 
 class BotHandler(BaseHandler):

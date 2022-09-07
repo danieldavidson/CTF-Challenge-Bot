@@ -2,6 +2,7 @@ version: '3'
 services:
   ctfbot:
     build: .
+    container_name: ctfbot
     volumes:
       - .:/src
     environment:

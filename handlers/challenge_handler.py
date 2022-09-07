@@ -1139,7 +1139,10 @@ class EndCTFCommand(Command):
 
         if ctf:
             ChallengeHandler.update_ctf_purpose(slack_wrapper, ctf)
-            cls.handle_archive_reminder(slack_wrapper, ctf)
+            try:
+                cls.handle_archive_reminder(slack_wrapper, ctf)
+            except SlackApiError as e:
+                log.error(f"Error setting reminders: {e}")
             slack_wrapper.post_message(
                 channel_id, "CTF *{}* finished...".format(ctf.name)
             )
@@ -1191,7 +1194,7 @@ class AddCredsCommand(Command):
             ctf.cred_pw = args[1]
 
         # Update database
-        ctf = storage_service.update_ctf(cur_ctf, update_func)
+        ctf = storage_service.update_ctf(cur_ctf.channel_id, update_func)
 
         if ctf:
             ChallengeHandler.update_ctf_purpose(slack_wrapper, ctf)
@@ -1348,7 +1351,7 @@ class ChallengeHandler(BaseHandler):
             "tag": CommandDesc(
                 command=AddChallengeTagCommand,
                 description="Add tag(s) to a challenge",
-                arguments=["challenge_tag/name"],
+                arguments=["challenge_name"],
                 opt_arguments=["[..challenge_tag(s)]"],
             ),
             "unsolve": CommandDesc(
@@ -1370,7 +1373,7 @@ class ChallengeHandler(BaseHandler):
             ),
             "populate": CommandDesc(
                 command=PopulateCommand,
-                description="Invite all non-present members of the CTF challenge into the challenge channel",
+                description="Invite all absent members of the CTF into the challenge channel",
             ),
             "roll": CommandDesc(command=RollCommand, description="Roll the dice"),
         }
