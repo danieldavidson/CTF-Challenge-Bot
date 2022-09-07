@@ -197,8 +197,9 @@ class AsCommand(Command):
             # Redirecting command execution to handler factory
             handler_factory.process_command(
                 slack_wrapper,
-                None,
+                storage_service,
                 dest_command,
+                dest_arguments,
                 [dest_command] + dest_arguments,
                 timestamp,
                 channel_id,
