@@ -1,24 +1,21 @@
 import json
 import os
 import threading
-import time
+
+from slack_bolt import App
+from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from bottypes.invalid_console_command import InvalidConsoleCommand
 from handlers import *
 from handlers import handler_factory
 from util.loghandler import log
 from util.slack_wrapper import SlackWrapper
-from util.util import get_display_name, resolve_user_by_user_id
-
-from slack_bolt import App
-from slack_bolt.adapter.socket_mode import SocketModeHandler
-from slack_sdk.errors import SlackApiError
+from util.storage_service import StorageService
 
 
 class BotServer:
     # Global lock for locking global data in bot server
     thread_lock = threading.Lock()
-    user_list = {}
 
     def __init__(self):
         log.debug("Parse config file and initialize threading...")
@@ -26,6 +23,7 @@ class BotServer:
         self.config = {}
         self.load_config()
         self.slack_wrapper = SlackWrapper()
+        self.storage_service = StorageService()
         self.init_bot_data()
 
     def lock(self):
@@ -90,22 +88,25 @@ class BotServer:
         )
 
     def init_bot_data(self):
-        """
-        Fetches the bot user information such as
-        bot_name, bot_id and bot_at.
-        """
         self.running = True
 
-        # Might even pass the bot server for handlers?
         log.info("Initializing handlers...")
-        handler_factory.initialize(self.slack_wrapper, self)
+        handler_factory.initialize(self.slack_wrapper, self, self.storage_service)
 
     def handle_message(self, body):
         command, params, channel, time_stamp, user = self.parse_slack_message(body)
 
         try:
-            log.debug("Received bot command : %s %s (%s)", command, params, channel)
-            handler_factory.process(self.slack_wrapper, command, params, time_stamp, channel, user)
+            log.info(
+                "Received bot command: %s %s from %s (%s)",
+                command,
+                params,
+                user,
+                channel,
+            )
+            handler_factory.process(
+                self.slack_wrapper, self.storage_service, command, params, time_stamp, channel, user
+            )
         except Exception as e:
             log.exception(e)
 

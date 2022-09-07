@@ -8,7 +8,7 @@ class SlackWrapperMock:
     Slack API wrapper mock
     """
 
-    def __init__(self, api_key):
+    def __init__(self):
         """
         SlackWrapper constructor.
         Connect to the real-time messaging API and

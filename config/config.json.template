@@ -1,6 +1,4 @@
 {
-  "api_key" : "",
-  "bot_name" : "",
   "send_help_as_dm" : "1",
   "admin_users" : [],
   "auto_invite" : [],
@@ -9,6 +7,6 @@
   "delete_watch_keywords" : "",
   "intro_message" : "",
   "private_ctfs": false,
-  "allow_signup": false,
+  "allow_signup": true,
   "maintenance_mode": false
 }

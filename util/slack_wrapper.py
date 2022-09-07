@@ -1,5 +1,6 @@
 import json
 import os
+from json import JSONDecodeError
 
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -28,7 +29,7 @@ class SlackWrapper:
         users = [users] if not type(users) == list else users
         return self.client.conversations_invite(channel=channel, users=users)
 
-    def set_purpose(self, channel, purpose, is_private=False):
+    def set_purpose(self, channel: str, purpose: str, is_private=False):
         """
         Set the purpose of a given channel.
         """
@@ -99,10 +100,13 @@ class SlackWrapper:
         channel_info = self.get_channel_info(channel_id, is_private)
 
         if channel_info:
-            purpose = json.loads(channel_info["channel"]["purpose"]["value"])
-            purpose["name"] = new_name
+            try:
+                purpose = json.loads(channel_info["channel"]["purpose"]["value"])
+                purpose["name"] = new_name
 
-            self.set_purpose(channel_id, json.dumps(purpose), is_private)
+                self.set_purpose(channel_id, json.dumps(purpose), is_private)
+            except JSONDecodeError:
+                log.error(f"Failed to decode {channel_info}")
 
     def post_message(self, channel_id, text, timestamp="", parse="full", user_id=None):
         """
@@ -131,18 +135,18 @@ class SlackWrapper:
                 )
 
     def post_message_with_react(
-        self, channel_id, text, reaction, parse="full", user_id=None
+            self, channel_id, text, reaction, parse="full", user_id=None
     ):
         """Post a message in a given channel and add the specified reaction to it."""
 
-        try:
-            result = self.client.chat_postMessage(
-                channel=channel_id,
-                text=text,
-                as_user=True,
-                parse=parse,
-            )
+        result = self.client.chat_postMessage(
+            channel=channel_id,
+            text=text,
+            as_user=True,
+            parse=parse,
+        )
 
+        try:
             if result["ok"]:
                 self.client.reactions_add(
                     channel=channel_id,
@@ -150,14 +154,7 @@ class SlackWrapper:
                     timestamp=result["ts"],
                 )
         except SlackApiError as e:
-            log.debug(e)
-            if user_id is not None:
-                result = self.client.chat_postMessage(
-                    channel=user_id,
-                    text=text,
-                    as_user=True,
-                    parse=parse,
-                )
+            log.warning(e)
 
     def get_message(self, channel_id, timestamp):
         """Retrieve a message from the channel with the specified timestamp."""

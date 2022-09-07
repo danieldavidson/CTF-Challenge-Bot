@@ -1,14 +1,17 @@
 from abc import ABC
+from typing import Dict
 
+from bottypes.command_descriptor import CommandDesc
 from bottypes.invalid_command import InvalidCommand
+from bottypes.reaction_descriptor import ReactionDesc
 from handlers import handler_factory
 
 
 class BaseHandler(ABC):
-    commands = {}  # Overridden by concrete class
-    aliases = {}  # Overridden by concrete class
-    reactions = {}
-    handler_name = ""  # Overridden by concrete class
+    commands: Dict[str, CommandDesc] = {}  # Overridden by concrete class
+    aliases: Dict[str, str] = {}  # Overridden by concrete class
+    reactions: Dict[str, ReactionDesc] = {}
+    handler_name: str = ""  # Overridden by concrete class
 
     def can_handle(self, command, user_is_admin):
         if command in self.commands:
@@ -28,7 +31,7 @@ class BaseHandler(ABC):
             return True
         return False
 
-    def init(self, slack_wrapper):
+    def init(self, slack_wrapper, storage_service):
         pass
 
     def get_aliases_for_command(self, command):
@@ -87,7 +90,7 @@ class BaseHandler(ABC):
         return msg
 
     def process(
-        self, slack_wrapper, command, args, timestamp, channel, user, user_is_admin
+        self, slack_wrapper, storage_service, command, args, timestamp, channel, user, user_is_admin
     ):
         if handler_factory.botserver.get_config_option("maintenance_mode"):
             if user_is_admin:
@@ -104,6 +107,7 @@ class BaseHandler(ABC):
         if command in self.aliases:
             self.process(
                 slack_wrapper,
+                storage_service,
                 self.aliases[command],
                 args,
                 timestamp,
@@ -118,7 +122,7 @@ class BaseHandler(ABC):
                 if len(args) < len(cmd_descriptor.arguments):
                     raise InvalidCommand(self.command_usage(command, cmd_descriptor))
                 cmd_descriptor.command.execute(
-                    slack_wrapper, args, timestamp, channel, user, user_is_admin
+                    slack_wrapper, storage_service, args, timestamp, channel, user, user_is_admin
                 )
 
     def process_reaction(
@@ -141,3 +145,6 @@ class BaseHandler(ABC):
                 user,
                 user_is_admin,
             )
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}"

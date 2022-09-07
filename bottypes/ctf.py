@@ -1,24 +1,34 @@
-class CTF:
-    def __init__(self, channel_id, name, long_name):
-        """
-        An object representation of an ongoing CTF.
-        channel_id : The slack id for the associated channel
-        name : The name of the CTF
-        """
+from typing import List
 
-        self.channel_id = channel_id
-        self.name = name
-        self.challenges = []
-        self.cred_user = ""
-        self.cred_pw = ""
-        self.long_name = long_name
-        self.finished = False
-        self.finished_on = 0
+from pydantic import BaseModel
 
-    def add_challenge(self, challenge):
+from bottypes.challenge import Challenge
+
+
+class CTF(BaseModel):
+    """
+    An object representation of an ongoing CTF.
+    """
+
+    channel_id: str
+    name: str
+    long_name: str = ""
+    challenges: List[Challenge] = []
+    cred_user = ""
+    cred_pw = ""
+    finished = False
+    finished_on = 0
+
+    def add_challenge(self, _challenge):
         """
         Add a challenge object to the list of challenges belonging
         to this CTF.
         challenge : A challenge object
         """
-        self.challenges.append(challenge)
+        self.challenges = list(
+            filter(
+                lambda challenge: challenge.channel_id != _challenge.channel_id,
+                self.challenges,
+            )
+        )
+        self.challenges.append(_challenge)

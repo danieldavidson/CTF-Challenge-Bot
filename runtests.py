@@ -12,15 +12,13 @@ class BotBaseTest(TestCase):
         self.botserver = BotServer()
 
         self.botserver.config = {
-            "bot_name": "unittest_bot",
-            "api_key": "unittest_apikey",
             "send_help_as_dm": "1",
             "admin_users": ["admin_user"],
             "auto_invite": [],
             "wolfram_app_id": "wolfram_dummyapi",
         }
 
-        self.botserver.slack_wrapper = SlackWrapperMock("testapikey")
+        self.botserver.slack_wrapper = SlackWrapperMock()
         self.botserver.init_bot_data()
 
         # replace set_config_option to avoid overwriting original bot configuration.
@@ -34,8 +32,8 @@ class BotBaseTest(TestCase):
                 "The specified configuration option doesn't exist: {}".format(option)
             )
 
-    def create_slack_wrapper_mock(self, api_key):
-        return SlackWrapperMock(api_key)
+    def create_slack_wrapper_mock(self):
+        return SlackWrapperMock()
 
     def exec_command(
         self, command, msg, exec_user="normal_user", channel="UNITTESTCHANNELID"

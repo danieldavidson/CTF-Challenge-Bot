@@ -1,7 +1,13 @@
-class CommandDesc:
-    def __init__(self, command, description, args, opt_args, is_admin_cmd=False):
-        self.command = command
-        self.description = description
-        self.arguments = args or []
-        self.opt_arguments = opt_args or []
-        self.is_admin_cmd = is_admin_cmd
+from typing import Type, List
+
+from pydantic import BaseModel
+
+from bottypes.command import Command
+
+
+class CommandDesc(BaseModel):
+    command: Type[Command]
+    description: str
+    arguments: List[str] = []
+    opt_arguments: List[str] = []
+    is_admin_cmd = False

@@ -10,7 +10,7 @@ class ShowAvailableArchCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ShowAvailableArch command."""
         arch_list = SyscallsHandler.syscallInfo.get_available_architectures()
@@ -41,7 +41,7 @@ class ShowSyscallCommand(Command):
 
     @classmethod
     def execute(
-        cls, slack_wrapper, args, timestamp, channel_id, user_id, user_is_admin
+        cls, slack_wrapper, storage_service, args, timestamp, channel_id, user_id, user_is_admin
     ):
         """Execute the ShowSyscall command."""
         arch = SyscallsHandler.syscallInfo.get_arch(args[0].lower())
@@ -78,11 +78,11 @@ class SyscallsHandler(BaseHandler):
 
     Commands :
     # Show available architectures
-    !syscalls available
+    /syscalls available
 
     # Show syscall information
-    !syscalls show x86 execve
-    !syscalls show x86 11
+    /syscalls show x86 execve
+    /syscalls show x86 11
     """
 
     # Specify the base directory, where the syscall tables are located
@@ -95,16 +95,13 @@ class SyscallsHandler(BaseHandler):
 
         self.commands = {
             "available": CommandDesc(
-                ShowAvailableArchCommand,
-                "Shows the available syscall architectures",
-                None,
-                None,
+                command=ShowAvailableArchCommand,
+                description="Shows the available syscall architectures",
             ),
             "show": CommandDesc(
-                ShowSyscallCommand,
-                "Show information for a specific syscall",
-                ["arch", "syscall name/syscall id"],
-                None,
+                command=ShowSyscallCommand,
+                description="Show information for a specific syscall",
+                arguments=["arch", "syscall name/syscall id"],
             ),
         }
 
