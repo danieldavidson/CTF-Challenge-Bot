@@ -1056,7 +1056,10 @@ class ArchiveCTFCommand(Command):
         message = "Archived the following channels :\n"
         for challenge in challenges:
             message += "- #{}-{}\n".format(ctf.name, challenge.name)
-            slack_wrapper.archive_channel(challenge.channel_id)
+            try:
+                slack_wrapper.archive_channel(challenge.channel_id)
+            except SlackApiError as e:
+                log.warning(f"Error archiving channel {challenge.channel_id}: {e}")
             storage_service.remove_challenge(challenge.channel_id, ctf.channel_id)
 
         # Remove possible configured reminders for this ctf
